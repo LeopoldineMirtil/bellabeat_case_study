@@ -2,7 +2,7 @@
 title: "Bellabeat Case Study"
 author: "Leopoldine Mirtil"
 date: "`r Sys.Date()`"
-output: html_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Disclaimer
 
-The data from this analysis is from the Bellabeat Case Study: How Can a Wellness Technology Company Play It Smart?, as part of the Google Data Analytics Certificate Capstone Project. The data was part of the [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download), made publicly available by the user Möbius on Kaggle.com. The data covers one month of collection from 4/12/2016 to 5/12/2016 from over 30 consenting users.
+This analysis was made from the _Bellabeat Case Study: How Can a Wellness Technology Company Play It Smart?_ offered through the Google Data Analytics Certificate program on Coursera.com. The data is from the [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download) on Kaggle.com and was originally uploaded by the user Möbius for public use. The data covers one month of collection from 4/12/2016 to 5/12/2016 from over 30 consenting users.
 
 
 ## Introduction
@@ -103,17 +103,9 @@ weightLog <- read.csv('weightLogInfo_merged.csv')
 
 ### Step 2 - Clean Data
 
-#### View Daily Data
+#### Review Daily Data Sets
 
-```{r}
-str(dailySteps)
-str(dailyInts)
-str(dailyCals)
-str(dailyActs)
-```
-
-
-#### Compare Daily Dataframes
+##### Compare Daily Dataframes
 
 ```{r}
 ##dailyActs vs dailyCals
@@ -141,16 +133,15 @@ all.equal(dailyActs[7:14], dailyInts[3:10])
 
 
 ```{r}
-##convert columns of data frames to data table for comparison
+##convert columns of dailyActs & dailyInts to data tables for comparison
 d_Acts <- data.table::setDT(dailyActs[7:14])
 d_Ints <- data.table::setDT(dailyInts[3:10])
 
 all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)# ignore column order
 ```
 
-##### Clean Environment
-
-```{r, results='hide'}
+```{r, results='hide', include=FALSE}
+#clean environment
 #remove unneeded datasets
 rm(d_Acts, d_Ints, dailyCals, dailyInts, dailySteps)
 gc()
@@ -160,7 +151,8 @@ gc()
 ##### Change Data Type of Column
 
 ```{r}
-dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') #will be a common point in other data sets
+#will be a common point in other data sets
+dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') 
 ```
 
 
@@ -170,21 +162,10 @@ dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') #will be a
 str(dailyActs)
 ```
 
-#### Inspect Hourly Data sets
 
-```{r}
-str(hrCals) 
-```
+#### Review Hourly Data sets
 
-```{r}
-str(hrInts)
-```
-
-```{r}
-str(hrSteps)
-```
-
-##### Compare Columns of Hourly Dataframes
+##### Compare Hourly Dataframes
 
 ```{r}
 #check Id columns
@@ -196,10 +177,8 @@ all.equal(hrCals$ActivityHour, hrInts$ActivityHour)
 all.equal(hrSteps$ActivityHour, hrInts$ActivityHour)
 ```
 
-The 'Id' and 'ActivityHour' columns are confirmed identical in all 3 hourly data sets, so they are safe to merge into a single data frame. The 'Id' and 'ActivityHour' columns will be primary columns or keys for the merged dataframe.
 
-
-##### Merge Hourly Data
+##### Merge Hourly Data Sets
 
 ```{r}
 hourlyActs <- bind_cols(hrCals, hrSteps[3], hrInts[3:4])
@@ -208,18 +187,17 @@ hourlyActs <- bind_cols(hrCals, hrSteps[3], hrInts[3:4])
 str(hourlyActs)
 ```
 
-##### Clean Environment
 
-```{r, results='hide'}
-#remove unneeded datasets
+```{r, results='hide', include=FALSE}
+#clean environment and remove unneeded datasets
 rm(hrCals, hrInts, hrSteps)
 gc() #clear up memory
 ```
 
 
-#### Review Minute Data Frames
+#### Review Minute Data Sets
 
-##### Compare Columns
+##### Compare Minute Data Frames
 
 ```{r}
 # check Id&ActivityMinute columns of min_narrow datasets
@@ -250,9 +228,8 @@ str(minWide)
 ```
 
 
-##### Clean Environment
-
-```{r, results='hide'}
+```{r, results='hide', include=FALSE}
+#clean environment
 rm(minCalsN, minStepsN, minIntsN, minMETsN, minCalsW, minIntsW, minStepsW)
 gc()
 ```
@@ -384,48 +361,6 @@ minWide <- select(minWide, -c(DateTime))
 ```
 
 
-#### View Dataframes
-
-```{r}
-head(dailyActs)
-```
-
-
-```{r}
-head(hourlyActs)
-```
-
-
-```{r}
-head(hrate_sec)
-```
-
-
-```{r}
-head(minActsN)
-```
-
-
-```{r}
-head(minSleep)
-```
-
-
-```{r}
-head(weightLog)
-```
-
-
-```{r}
-head(sleepDay)
-```
-
-
-```{r}
-head(minWide)
-```
-
-
 #### Export Modified Dataframes
 
 ```{r, warning=FALSE}
@@ -488,13 +423,6 @@ gc()
 ```
 
 
-#### View Merged Dataframe
-
-```{r}
-str(smart_dev_use)
-```
-
-
 #### Export Merged Data Frame
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
@@ -506,13 +434,20 @@ write.csv(smart_dev_use, 'smart_dev_use.csv', row.names = FALSE)
 ```
 
 
-```{r, echo=FALSE, results='hide'}
+```{r, echo=FALSE, results='hide', include=FALSE}
 # clear up memory
 gc()
 ```
 
 
 ### Step 4- Further Modify Combined Dataset
+
+#### Inspect Merged Data Frame
+
+```{r}
+str(smart_dev_use)
+```
+
 
 #### Create Primary Id column
 
@@ -535,7 +470,7 @@ sum(is.na(smartDev$DailyId))
 ```
 
 
-```{r, echo=FALSE, results='hide'}
+```{r, echo=FALSE, results='hide', include=FALSE}
 # clear up memory
 gc()
 ```
@@ -634,7 +569,7 @@ head(mod_smart)
 ```
 
 
-```{r, results='hide', echo=FALSE}
+```{r, results='hide', echo=FALSE, include=FALSE}
 gc() # clear up storage/memory
 ```
 
@@ -653,7 +588,10 @@ pivot_longer(
 
 #view pivoted data
 head(mod_minWide)
+```
 
+
+```{r, warning=FALSE}
 ### further transpose to create new Minutes column 
 mod_mins <-
 mod_minWide %>%
@@ -666,6 +604,12 @@ pivot_longer(cols = !c(Id, Date, Time, Features),
 mod_mins <- mod_mins[,c(1:3,5,4,6)] 
 mod_mins$Minutes <- chron(times.=(format(strptime(mod_mins$Minutes, '%M'), '%H:%M:%S')))
 
+#view pivoted data
+head(mod_mins)
+```
+
+
+```{r, warning=FALSE}
 #merge Minutes and Hours into new 'Time' column
 mod_mins <-
 mod_mins %>% 
@@ -673,7 +617,7 @@ mod_mins %>%
   unite(Time, Hour, Minutes, sep=':') %>%
   mutate(Time=chron(times.=(format(strptime(Time, '%H:%M'), '%H:%M:%S'))))
 
-# view newly modified data frame
+# view final modified data frame
 head(mod_mins)
 ```
 
@@ -681,15 +625,16 @@ head(mod_mins)
 ##### Check for NA Values 
 
 ```{r}
-sum(is.na(mod_smart))
+#expect a fair amount as users did not use all features at all times
+sum(is.na(mod_smart)) 
 
 # should be zero, same as before
 sum(is.na(mod_mins))
 ```
 
-#### Clean Environment
 
-```{r, results='hide'}
+```{r, results='hide', include=FALSE}
+#clean environment and memory
 rm(minWide, smart_d2, mod_minWide, smartDev)
 gc() 
 ```
@@ -980,7 +925,7 @@ mod_smart %>%
 
 #### Step 7 - Visualizations
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 mod_smart %>%
   group_by(SmartFeatures)%>%
   summarise(User_Count=length(unique(Id))) %>%
@@ -997,7 +942,7 @@ mod_smart %>%
 Most of the smart features were utilized by all 33 users. There were 9 smart features that had under 25 users. 
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 mod_smart %>%
   group_by(SmartFeatures) %>%
   summarise(Total_Count=n()) %>%
@@ -1017,7 +962,7 @@ There was a large disparity in the frequency of use among the smart features. Fi
 
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 mod_smart %>%
   group_by(SmartFeatures) %>%
   summarise(Total_Count=n()) %>%
@@ -1039,7 +984,7 @@ The top 5 most frequently used smart features among the users possess a time mea
 
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 mod_smart %>%
   group_by(SmartFeatures) %>%
   summarise(Total_Count=n()) %>%
@@ -1061,7 +1006,7 @@ The least used features have a total use count under 500 among the users. These 
 
 #### Weekday Frequency 
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 mod_smart %>% 
   mutate(Weekday=wday(Date, label=TRUE)) %>%
   group_by(Weekday) %>%
@@ -1076,7 +1021,7 @@ mod_smart %>%
 The frequency of device usage was consistently over 1,000,000 throughout the weekdays. The highest usage was seen midweek, from Tuesday to Thursday. 
 
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 mod_mins %>% 
   mutate(Weekday=wday(Date, label=TRUE)) %>%
   group_by(Weekday, Features) %>%
@@ -1095,7 +1040,7 @@ These three features, used by all sampled users, were consistently above 150,000
 
 #### Time Frequency of Smart Features
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
 library(patchwork) # side by side plot
 
 # count by hour
@@ -1130,7 +1075,7 @@ The hourly frequency of the smart features was greater than that of the minutes,
 
 #### Time Frequency of Common Features
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 library(patchwork)
 
 h1 <- mod_mins %>%
@@ -1179,16 +1124,16 @@ The frequency of the three main features are consistent across the hours and min
 
 ### Top Recommendations
 
-__1.__ **Drop Least Popular Features**
+**Drop Least Popular Features**
 
 Bellabeat should consider dropping the five least popular smart features. This would allow the company to shift their resources onto their more profitable features and better market their products to future customers. The company should also consider either discontinuing the manual reports for weight smart features or modifying it in order to apply to other popular features.
 
 
-__2.__ **Develop 'Heart' Related Features**
+**Develop 'Heart' Related Features**
 
 Since the 'HeartRateSec' feature saw the most frequent use by all sampled users the company should develop more heart related features such as blood pressure or a pulse monitor. They can also consider developing a device specifically related to cardio exercises to attract potential customers. 
 
 
-__3.__ **Develop 'METS' Related Features**
+**Develop 'METS' Related Features**
 
 The company should develop more 'METs' related features as it was among the top five most used features over the month and all 33 users made use of it. This would also expand the available minute features (Calories, Intensity, and Steps) used by all users from 3  to 4. The increased marketing as a result of the developments would attract more customers.
