@@ -1,18 +1,18 @@
 Bellabeat Case Study
 ================
 Leopoldine Mirtil
-2023-08-27
+2023-09-07
 
 ### Disclaimer
 
-The data from this analysis is from the Bellabeat Case Study: How Can a
-Wellness Technology Company Play It Smart?, as part of the Google Data
-Analytics Certificate Capstone Project. The data was part of the [FitBit
-Fitness Tracker
-Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download),
-made publicly available by the user Möbius on Kaggle.com. The data
-covers one month of collection from 4/12/2016 to 5/12/2016 from over 30
-consenting users.
+This analysis was made from the *Bellabeat Case Study: How Can a
+Wellness Technology Company Play It Smart?* offered through the Google
+Data Analytics Certificate program on Coursera.com. The data is from the
+[FitBit Fitness Tracker
+Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download)
+on Kaggle.com and was originally uploaded by the user Möbius for public
+use. The data covers one month of collection from 4/12/2016 to 5/12/2016
+from over 30 consenting users.
 
 ## Introduction
 
@@ -126,64 +126,9 @@ weightLog <- read.csv('weightLogInfo_merged.csv')
 
 ### Step 2 - Clean Data
 
-#### View Daily Data
+#### Review Daily Data Sets
 
-``` r
-str(dailySteps)
-```
-
-    ## 'data.frame':    940 obs. of  3 variables:
-    ##  $ Id         : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityDay: chr  "4/12/2016" "4/13/2016" "4/14/2016" "4/15/2016" ...
-    ##  $ StepTotal  : int  13162 10735 10460 9762 12669 9705 13019 15506 10544 9819 ...
-
-``` r
-str(dailyInts)
-```
-
-    ## 'data.frame':    940 obs. of  10 variables:
-    ##  $ Id                      : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityDay             : chr  "4/12/2016" "4/13/2016" "4/14/2016" "4/15/2016" ...
-    ##  $ SedentaryMinutes        : int  728 776 1218 726 773 539 1149 775 818 838 ...
-    ##  $ LightlyActiveMinutes    : int  328 217 181 209 221 164 233 264 205 211 ...
-    ##  $ FairlyActiveMinutes     : int  13 19 11 34 10 20 16 31 12 8 ...
-    ##  $ VeryActiveMinutes       : int  25 21 30 29 36 38 42 50 28 19 ...
-    ##  $ SedentaryActiveDistance : num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ LightActiveDistance     : num  6.06 4.71 3.91 2.83 5.04 ...
-    ##  $ ModeratelyActiveDistance: num  0.55 0.69 0.4 1.26 0.41 ...
-    ##  $ VeryActiveDistance      : num  1.88 1.57 2.44 2.14 2.71 ...
-
-``` r
-str(dailyCals)
-```
-
-    ## 'data.frame':    940 obs. of  3 variables:
-    ##  $ Id         : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityDay: chr  "4/12/2016" "4/13/2016" "4/14/2016" "4/15/2016" ...
-    ##  $ Calories   : int  1985 1797 1776 1745 1863 1728 1921 2035 1786 1775 ...
-
-``` r
-str(dailyActs)
-```
-
-    ## 'data.frame':    940 obs. of  15 variables:
-    ##  $ Id                      : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityDate            : chr  "4/12/2016" "4/13/2016" "4/14/2016" "4/15/2016" ...
-    ##  $ TotalSteps              : int  13162 10735 10460 9762 12669 9705 13019 15506 10544 9819 ...
-    ##  $ TotalDistance           : num  8.5 6.97 6.74 6.28 8.16 ...
-    ##  $ TrackerDistance         : num  8.5 6.97 6.74 6.28 8.16 ...
-    ##  $ LoggedActivitiesDistance: num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ VeryActiveDistance      : num  1.88 1.57 2.44 2.14 2.71 ...
-    ##  $ ModeratelyActiveDistance: num  0.55 0.69 0.4 1.26 0.41 ...
-    ##  $ LightActiveDistance     : num  6.06 4.71 3.91 2.83 5.04 ...
-    ##  $ SedentaryActiveDistance : num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ VeryActiveMinutes       : int  25 21 30 29 36 38 42 50 28 19 ...
-    ##  $ FairlyActiveMinutes     : int  13 19 11 34 10 20 16 31 12 8 ...
-    ##  $ LightlyActiveMinutes    : int  328 217 181 209 221 164 233 264 205 211 ...
-    ##  $ SedentaryMinutes        : int  728 776 1218 726 773 539 1149 775 818 838 ...
-    ##  $ Calories                : int  1985 1797 1776 1745 1863 1728 1921 2035 1786 1775 ...
-
-#### Compare Daily Dataframes
+##### Compare Daily Dataframes
 
 ``` r
 ##dailyActs vs dailyCals
@@ -252,7 +197,7 @@ all.equal(dailyActs[7:14], dailyInts[3:10])
     ## [9] "Component 8: Mean relative difference: 0.998484"
 
 ``` r
-##convert columns of data frames to data table for comparison
+##convert columns of dailyActs & dailyInts to data tables for comparison
 d_Acts <- data.table::setDT(dailyActs[7:14])
 d_Ints <- data.table::setDT(dailyInts[3:10])
 
@@ -261,18 +206,11 @@ all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)# ignore column order
 
     ## [1] TRUE
 
-##### Clean Environment
-
-``` r
-#remove unneeded datasets
-rm(d_Acts, d_Ints, dailyCals, dailyInts, dailySteps)
-gc()
-```
-
 ##### Change Data Type of Column
 
 ``` r
-dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') #will be a common point in other data sets
+#will be a common point in other data sets
+dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') 
 ```
 
 ##### Examine Modified ‘dailyActs’ Dataframe
@@ -298,37 +236,9 @@ str(dailyActs)
     ##  $ SedentaryMinutes        : int  728 776 1218 726 773 539 1149 775 818 838 ...
     ##  $ Calories                : int  1985 1797 1776 1745 1863 1728 1921 2035 1786 1775 ...
 
-#### Inspect Hourly Data sets
+#### Review Hourly Data sets
 
-``` r
-str(hrCals) 
-```
-
-    ## 'data.frame':    22099 obs. of  3 variables:
-    ##  $ Id          : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityHour: chr  "4/12/2016 12:00:00 AM" "4/12/2016 1:00:00 AM" "4/12/2016 2:00:00 AM" "4/12/2016 3:00:00 AM" ...
-    ##  $ Calories    : int  81 61 59 47 48 48 48 47 68 141 ...
-
-``` r
-str(hrInts)
-```
-
-    ## 'data.frame':    22099 obs. of  4 variables:
-    ##  $ Id              : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityHour    : chr  "4/12/2016 12:00:00 AM" "4/12/2016 1:00:00 AM" "4/12/2016 2:00:00 AM" "4/12/2016 3:00:00 AM" ...
-    ##  $ TotalIntensity  : int  20 8 7 0 0 0 0 0 13 30 ...
-    ##  $ AverageIntensity: num  0.333 0.133 0.117 0 0 ...
-
-``` r
-str(hrSteps)
-```
-
-    ## 'data.frame':    22099 obs. of  3 variables:
-    ##  $ Id          : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityHour: chr  "4/12/2016 12:00:00 AM" "4/12/2016 1:00:00 AM" "4/12/2016 2:00:00 AM" "4/12/2016 3:00:00 AM" ...
-    ##  $ StepTotal   : int  373 160 151 0 0 0 0 0 250 1864 ...
-
-##### Compare Columns of Hourly Dataframes
+##### Compare Hourly Dataframes
 
 ``` r
 #check Id columns
@@ -356,12 +266,7 @@ all.equal(hrSteps$ActivityHour, hrInts$ActivityHour)
 
     ## [1] TRUE
 
-The ‘Id’ and ‘ActivityHour’ columns are confirmed identical in all 3
-hourly data sets, so they are safe to merge into a single data frame.
-The ‘Id’ and ‘ActivityHour’ columns will be primary columns or keys for
-the merged dataframe.
-
-##### Merge Hourly Data
+##### Merge Hourly Data Sets
 
 ``` r
 hourlyActs <- bind_cols(hrCals, hrSteps[3], hrInts[3:4])
@@ -378,17 +283,9 @@ str(hourlyActs)
     ##  $ TotalIntensity  : int  20 8 7 0 0 0 0 0 13 30 ...
     ##  $ AverageIntensity: num  0.333 0.133 0.117 0 0 ...
 
-##### Clean Environment
+#### Review Minute Data Sets
 
-``` r
-#remove unneeded datasets
-rm(hrCals, hrInts, hrSteps)
-gc() #clear up memory
-```
-
-#### Review Minute Data Frames
-
-##### Compare Columns
+##### Compare Minute Data Frames
 
 ``` r
 # check Id&ActivityMinute columns of min_narrow datasets
@@ -547,13 +444,6 @@ str(minWide)
     ##  $ Intensity35 : int  0 0 0 1 0 0 0 0 0 0 ...
     ##  $ Intensity36 : int  0 0 0 1 0 0 0 0 1 1 ...
     ##   [list output truncated]
-
-##### Clean Environment
-
-``` r
-rm(minCalsN, minStepsN, minIntsN, minMETsN, minCalsW, minIntsW, minStepsW)
-gc()
-```
 
 ### Step 3 - Modify Data
 
@@ -752,335 +642,6 @@ the results.
 minWide <- select(minWide, -c(DateTime))
 ```
 
-#### View Dataframes
-
-``` r
-head(dailyActs)
-```
-
-    ##      DailyId DailyActsDate DailyCalories TotalSteps TotalDistance
-    ## 1 1503960366    2016-04-12          1985      13162          8.50
-    ## 2 1503960366    2016-04-13          1797      10735          6.97
-    ## 3 1503960366    2016-04-14          1776      10460          6.74
-    ## 4 1503960366    2016-04-15          1745       9762          6.28
-    ## 5 1503960366    2016-04-16          1863      12669          8.16
-    ## 6 1503960366    2016-04-17          1728       9705          6.48
-    ##   TrackerDistance LoggedActivitiesDistance VeryActiveDistance
-    ## 1            8.50                        0               1.88
-    ## 2            6.97                        0               1.57
-    ## 3            6.74                        0               2.44
-    ## 4            6.28                        0               2.14
-    ## 5            8.16                        0               2.71
-    ## 6            6.48                        0               3.19
-    ##   ModeratelyActiveDistance LightActiveDistance SedentaryActiveDistance
-    ## 1                     0.55                6.06                       0
-    ## 2                     0.69                4.71                       0
-    ## 3                     0.40                3.91                       0
-    ## 4                     1.26                2.83                       0
-    ## 5                     0.41                5.04                       0
-    ## 6                     0.78                2.51                       0
-    ##   VeryActiveMinutes FairlyActiveMinutes LightlyActiveMinutes SedentaryMinutes
-    ## 1                25                  13                  328              728
-    ## 2                21                  19                  217              776
-    ## 3                30                  11                  181             1218
-    ## 4                29                  34                  209              726
-    ## 5                36                  10                  221              773
-    ## 6                38                  20                  164              539
-
-``` r
-head(hourlyActs)
-```
-
-    ##     HourlyId          ActivityHour HourlyDate     Hour HourlyCalories
-    ## 1 1503960366 4/12/2016 12:00:00 AM 2016-04-12 00:00:00             81
-    ## 2 1503960366  4/12/2016 1:00:00 AM 2016-04-12 01:00:00             61
-    ## 3 1503960366  4/12/2016 2:00:00 AM 2016-04-12 02:00:00             59
-    ## 4 1503960366  4/12/2016 3:00:00 AM 2016-04-12 03:00:00             47
-    ## 5 1503960366  4/12/2016 4:00:00 AM 2016-04-12 04:00:00             48
-    ## 6 1503960366  4/12/2016 5:00:00 AM 2016-04-12 05:00:00             48
-    ##   HourlyStepTotal HourlyTotalIntensity HourlyAverageIntensity
-    ## 1             373                   20               0.333333
-    ## 2             160                    8               0.133333
-    ## 3             151                    7               0.116667
-    ## 4               0                    0               0.000000
-    ## 5               0                    0               0.000000
-    ## 6               0                    0               0.000000
-
-``` r
-head(hrate_sec)
-```
-
-    ##      HRateId        HRateDateTime  HRateDate HRateTime HeartRateSec
-    ## 1 2022484408 4/12/2016 7:21:00 AM 2016-04-12  07:21:00           97
-    ## 2 2022484408 4/12/2016 7:21:05 AM 2016-04-12  07:21:05          102
-    ## 3 2022484408 4/12/2016 7:21:10 AM 2016-04-12  07:21:10          105
-    ## 4 2022484408 4/12/2016 7:21:20 AM 2016-04-12  07:21:20          103
-    ## 5 2022484408 4/12/2016 7:21:25 AM 2016-04-12  07:21:25          101
-    ## 6 2022484408 4/12/2016 7:22:05 AM 2016-04-12  07:22:05           95
-
-``` r
-head(minActsN)
-```
-
-    ##    MinActsId            DateMinute MinuteDates  Minutes MinuteCalories
-    ## 1 1503960366 4/12/2016 12:00:00 AM  2016-04-12 00:00:00         0.7865
-    ## 2 1503960366 4/12/2016 12:01:00 AM  2016-04-12 00:01:00         0.7865
-    ## 3 1503960366 4/12/2016 12:02:00 AM  2016-04-12 00:02:00         0.7865
-    ## 4 1503960366 4/12/2016 12:03:00 AM  2016-04-12 00:03:00         0.7865
-    ## 5 1503960366 4/12/2016 12:04:00 AM  2016-04-12 00:04:00         0.7865
-    ## 6 1503960366 4/12/2016 12:05:00 AM  2016-04-12 00:05:00         0.9438
-    ##   MinuteSteps MinuteIntensity MinutesMETs
-    ## 1           0               0          10
-    ## 2           0               0          10
-    ## 3           0               0          10
-    ## 4           0               0          10
-    ## 5           0               0          10
-    ## 6           0               0          12
-
-``` r
-head(minSleep)
-```
-
-    ##   MinSleepId     MinSleepDateTime MinSleepDate SleepMinutes MinSleepValue
-    ## 1 1503960366 4/12/2016 2:47:30 AM   2016-04-12     02:47:30             3
-    ## 2 1503960366 4/12/2016 2:48:30 AM   2016-04-12     02:48:30             2
-    ## 3 1503960366 4/12/2016 2:49:30 AM   2016-04-12     02:49:30             1
-    ## 4 1503960366 4/12/2016 2:50:30 AM   2016-04-12     02:50:30             1
-    ## 5 1503960366 4/12/2016 2:51:30 AM   2016-04-12     02:51:30             1
-    ## 6 1503960366 4/12/2016 2:52:30 AM   2016-04-12     02:52:30             1
-    ##   MinSleepLogId
-    ## 1   11380564589
-    ## 2   11380564589
-    ## 3   11380564589
-    ## 4   11380564589
-    ## 5   11380564589
-    ## 6   11380564589
-
-``` r
-head(weightLog)
-```
-
-    ##     WeightId        WeightDateTime WeightDate WeightTime WeightKg WeightPounds
-    ## 1 1503960366  5/2/2016 11:59:59 PM 2016-05-02   23:59:59     52.6     115.9631
-    ## 2 1503960366  5/3/2016 11:59:59 PM 2016-05-03   23:59:59     52.6     115.9631
-    ## 3 1927972279  4/13/2016 1:08:52 AM 2016-04-13   01:08:52    133.5     294.3171
-    ## 4 2873212765 4/21/2016 11:59:59 PM 2016-04-21   23:59:59     56.7     125.0021
-    ## 5 2873212765 5/12/2016 11:59:59 PM 2016-05-12   23:59:59     57.3     126.3249
-    ## 6 4319703577 4/17/2016 11:59:59 PM 2016-04-17   23:59:59     72.4     159.6147
-    ##   Fat   BMI IsManualReport   WeightLogId
-    ## 1  22 22.65           True 1462233599000
-    ## 2  NA 22.65           True 1462319999000
-    ## 3  NA 47.54          False 1460509732000
-    ## 4  NA 21.45           True 1461283199000
-    ## 5  NA 21.69           True 1463097599000
-    ## 6  25 27.45           True 1460937599000
-
-``` r
-head(sleepDay)
-```
-
-    ##   SleepDayId         SleepDateTime  SleepDate SleepTime TotalSleepRecords
-    ## 1 1503960366 4/12/2016 12:00:00 AM 2016-04-12  00:00:00                 1
-    ## 2 1503960366 4/13/2016 12:00:00 AM 2016-04-13  00:00:00                 2
-    ## 3 1503960366 4/15/2016 12:00:00 AM 2016-04-15  00:00:00                 1
-    ## 4 1503960366 4/16/2016 12:00:00 AM 2016-04-16  00:00:00                 2
-    ## 5 1503960366 4/17/2016 12:00:00 AM 2016-04-17  00:00:00                 1
-    ## 6 1503960366 4/19/2016 12:00:00 AM 2016-04-19  00:00:00                 1
-    ##   TotalMinutesAsleep TotalTimeInBed
-    ## 1                327            346
-    ## 2                384            407
-    ## 3                412            442
-    ## 4                340            367
-    ## 5                700            712
-    ## 6                304            320
-
-``` r
-head(minWide)
-```
-
-    ##           Id       Date     Time Calories00 Calories01 Calories02 Calories03
-    ## 1 1503960366 2016-04-13 00:00:00     1.8876     2.2022     0.9438     0.9438
-    ## 2 1503960366 2016-04-13 01:00:00     0.7865     0.7865     0.7865     0.7865
-    ## 3 1503960366 2016-04-13 02:00:00     0.7865     0.7865     0.7865     0.7865
-    ## 4 1503960366 2016-04-13 03:00:00     0.7865     0.7865     0.7865     0.7865
-    ## 5 1503960366 2016-04-13 04:00:00     0.7865     0.7865     0.7865     0.7865
-    ## 6 1503960366 2016-04-13 05:00:00     0.7865     0.7865     0.7865     0.7865
-    ##   Calories04 Calories05 Calories06 Calories07 Calories08 Calories09 Calories10
-    ## 1     0.9438     2.0449     0.9438     2.2022     0.9438     0.7865     0.9438
-    ## 2     0.9438     0.9438     0.9438     0.7865     0.9438     0.7865     0.9438
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories11 Calories12 Calories13 Calories14 Calories15 Calories16 Calories17
-    ## 1     0.7865     0.7865     0.7865     0.7865     0.9438     0.9438     0.7865
-    ## 2     0.7865     0.9438     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     2.0449     0.9438     0.7865     0.7865     0.9438     0.7865     0.9438
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories18 Calories19 Calories20 Calories21 Calories22 Calories23 Calories24
-    ## 1     0.7865     0.7865     1.8876     0.9438     0.9438     0.9438     0.9438
-    ## 2     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 5     0.7865     0.9438     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.9438     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories25 Calories26 Calories27 Calories28 Calories29 Calories30 Calories31
-    ## 1     2.0449     2.3595     0.9438     2.0449     0.9438     0.9438     0.9438
-    ## 2     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories32 Calories33 Calories34 Calories35 Calories36 Calories37 Calories38
-    ## 1     2.0449     1.8876     0.9438     0.7865     0.7865     0.7865     0.7865
-    ## 2     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.9438     2.0449     2.0449     1.8876     0.7865     0.7865
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories39 Calories40 Calories41 Calories42 Calories43 Calories44 Calories45
-    ## 1     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 2     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories46 Calories47 Calories48 Calories49 Calories50 Calories51 Calories52
-    ## 1     0.7865     0.7865     0.7865     0.7865     0.9438     2.0449     2.0449
-    ## 2     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Calories53 Calories54 Calories55 Calories56 Calories57 Calories58 Calories59
-    ## 1     0.9438     2.3595     1.8876     0.9438     0.9438     0.9438     0.9438
-    ## 2     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 3     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 4     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 5     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ## 6     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865     0.7865
-    ##   Intensity00 Intensity01 Intensity02 Intensity03 Intensity04 Intensity05
-    ## 1           1           1           0           0           0           1
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity06 Intensity07 Intensity08 Intensity09 Intensity10 Intensity11
-    ## 1           0           1           0           0           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           1
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity12 Intensity13 Intensity14 Intensity15 Intensity16 Intensity17
-    ## 1           0           0           0           0           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity18 Intensity19 Intensity20 Intensity21 Intensity22 Intensity23
-    ## 1           0           0           1           0           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity24 Intensity25 Intensity26 Intensity27 Intensity28 Intensity29
-    ## 1           0           1           1           0           1           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity30 Intensity31 Intensity32 Intensity33 Intensity34 Intensity35
-    ## 1           0           0           1           1           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           1           1
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity36 Intensity37 Intensity38 Intensity39 Intensity40 Intensity41
-    ## 1           0           0           0           0           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           1           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity42 Intensity43 Intensity44 Intensity45 Intensity46 Intensity47
-    ## 1           0           0           0           0           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity48 Intensity49 Intensity50 Intensity51 Intensity52 Intensity53
-    ## 1           0           0           0           1           1           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Intensity54 Intensity55 Intensity56 Intensity57 Intensity58 Intensity59
-    ## 1           1           1           0           0           0           0
-    ## 2           0           0           0           0           0           0
-    ## 3           0           0           0           0           0           0
-    ## 4           0           0           0           0           0           0
-    ## 5           0           0           0           0           0           0
-    ## 6           0           0           0           0           0           0
-    ##   Steps00 Steps01 Steps02 Steps03 Steps04 Steps05 Steps06 Steps07 Steps08
-    ## 1       4      16       0       0       0       9       0      17       0
-    ## 2       0       0       0       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0       0       0       0
-    ## 4       0       0       0       0       0       0       0       0       0
-    ## 5       0       0       0       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0       0       0       0
-    ##   Steps09 Steps10 Steps11 Steps12 Steps13 Steps14 Steps15 Steps16 Steps17
-    ## 1       0       0       0       0       0       0       0       0       0
-    ## 2       0       0       0       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0       0       0       0
-    ## 4       0       0      10       0       0       0       0       0       0
-    ## 5       0       0       0       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0       0       0       0
-    ##   Steps18 Steps19 Steps20 Steps21 Steps22 Steps23 Steps24 Steps25 Steps26
-    ## 1       0       0       6       0       0       0       0      11      21
-    ## 2       0       0       0       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0       0       0       0
-    ## 4       0       0       0       0       0       0       0       0       0
-    ## 5       0       0       0       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0       0       0       0
-    ##   Steps27 Steps28 Steps29 Steps30 Steps31 Steps32 Steps33 Steps34 Steps35
-    ## 1       0       8       0       0       0       8       6       0       0
-    ## 2       0       0       0       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0       0       0       0
-    ## 4       0       0       0       0       0       0       0      11       9
-    ## 5       0       0       0       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0       0       0       0
-    ##   Steps36 Steps37 Steps38 Steps39 Steps40 Steps41 Steps42 Steps43 Steps44
-    ## 1       0       0       0       0       0       0       0       0       0
-    ## 2       0       0       0       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0       0       0       0
-    ## 4       6       0       0       0       0       0       0       0       0
-    ## 5       0       0       0       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0       0       0       0
-    ##   Steps45 Steps46 Steps47 Steps48 Steps49 Steps50 Steps51 Steps52 Steps53
-    ## 1       0       0       0       0       0       0       9       8       0
-    ## 2       0       0       0       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0       0       0       0
-    ## 4       0       0       0       0       0       0       0       0       0
-    ## 5       0       0       0       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0       0       0       0
-    ##   Steps54 Steps55 Steps56 Steps57 Steps58 Steps59
-    ## 1      20       1       0       0       0       0
-    ## 2       0       0       0       0       0       0
-    ## 3       0       0       0       0       0       0
-    ## 4       0       0       0       0       0       0
-    ## 5       0       0       0       0       0       0
-    ## 6       0       0       0       0       0       0
-
 #### Export Modified Dataframes
 
 ``` r
@@ -1139,7 +700,19 @@ rm(use4, use5, hrate_sec, weightLog) #clear environment
 gc()
 ```
 
-#### View Merged Dataframe
+#### Export Merged Data Frame
+
+``` r
+# set directory
+setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Case Study/01_tidy_data')
+
+#export final merged file as precaution
+write.csv(smart_dev_use, 'smart_dev_use.csv', row.names = FALSE)
+```
+
+### Step 4- Further Modify Combined Dataset
+
+#### Inspect Merged Data Frame
 
 ``` r
 str(smart_dev_use)
@@ -1205,18 +778,6 @@ str(smart_dev_use)
     ##  $ BMI                     : num  NA NA NA NA NA NA NA NA NA NA ...
     ##  $ IsManualReport          : chr  NA NA NA NA ...
     ##  $ WeightLogId             : num  NA NA NA NA NA NA NA NA NA NA ...
-
-#### Export Merged Data Frame
-
-``` r
-# set directory
-setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Case Study/01_tidy_data')
-
-#export final merged file as precaution
-write.csv(smart_dev_use, 'smart_dev_use.csv', row.names = FALSE)
-```
-
-### Step 4- Further Modify Combined Dataset
 
 #### Create Primary Id column
 
@@ -1423,6 +984,21 @@ pivot_longer(cols = !c(Id, Date, Time, Features),
 mod_mins <- mod_mins[,c(1:3,5,4,6)] 
 mod_mins$Minutes <- chron(times.=(format(strptime(mod_mins$Minutes, '%M'), '%H:%M:%S')))
 
+#view pivoted data
+head(mod_mins)
+```
+
+    ## # A tibble: 6 × 6
+    ##           Id Date       Hour     Minutes  Features Value
+    ##        <dbl> <date>     <times>  <times>  <chr>    <dbl>
+    ## 1 1503960366 2016-04-13 00:00:00 00:00:00 Calories 1.89 
+    ## 2 1503960366 2016-04-13 00:00:00 00:01:00 Calories 2.20 
+    ## 3 1503960366 2016-04-13 00:00:00 00:02:00 Calories 0.944
+    ## 4 1503960366 2016-04-13 00:00:00 00:03:00 Calories 0.944
+    ## 5 1503960366 2016-04-13 00:00:00 00:04:00 Calories 0.944
+    ## 6 1503960366 2016-04-13 00:00:00 00:05:00 Calories 2.04
+
+``` r
 #merge Minutes and Hours into new 'Time' column
 mod_mins <-
 mod_mins %>% 
@@ -1430,7 +1006,7 @@ mod_mins %>%
   unite(Time, Hour, Minutes, sep=':') %>%
   mutate(Time=chron(times.=(format(strptime(Time, '%H:%M'), '%H:%M:%S'))))
 
-# view newly modified data frame
+# view final modified data frame
 head(mod_mins)
 ```
 
@@ -1447,7 +1023,8 @@ head(mod_mins)
 ##### Check for NA Values
 
 ``` r
-sum(is.na(mod_smart))
+#expect a fair amount as users did not use all features at all times
+sum(is.na(mod_smart)) 
 ```
 
     ## [1] 8084608
@@ -1458,13 +1035,6 @@ sum(is.na(mod_mins))
 ```
 
     ## [1] 0
-
-#### Clean Environment
-
-``` r
-rm(minWide, smart_d2, mod_minWide, smartDev)
-gc() 
-```
 
 #### Export Modified File
 
@@ -2123,89 +1693,25 @@ mod_smart %>%
 
 #### Step 7 - Visualizations
 
-``` r
-mod_smart %>%
-  group_by(SmartFeatures)%>%
-  summarise(User_Count=length(unique(Id))) %>%
-  arrange(desc(User_Count)) %>%
-  ggplot(mapping=aes(x=fct_reorder(SmartFeatures,-User_Count), y=User_Count)) +
-  geom_col(position = "dodge", fill='steelblue') + 
-   ggtitle('User Count per Features') +
-  xlab('Smart Features') +
-  ylab('Number of Users') +
-  coord_flip() +
-  theme(legend.position = "none") 
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-86-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
 Most of the smart features were utilized by all 33 users. There were 9
 smart features that had under 25 users.
 
-``` r
-mod_smart %>%
-  group_by(SmartFeatures) %>%
-  summarise(Total_Count=n()) %>%
-  arrange(desc(Total_Count)) %>%
-  ggplot(mapping=aes(x=fct_reorder(SmartFeatures, +Total_Count), y=Total_Count)) +
-  geom_col(position = "dodge", fill='lightseagreen') + 
-  xlab('Smart Features') +
-  ylab('Total Count') +
-  ggtitle('Frequency of Smart Features') +
-  scale_y_continuous(labels = scales::comma) + 
-  coord_flip() +
-  theme(legend.position = "none") 
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-87-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
 
 There was a large disparity in the frequency of use among the smart
 features. Five of the features recorded a over 1,250,000 total uses at
 the end of the month. The remaining features had under 250,000 frequency
 total.
 
-``` r
-mod_smart %>%
-  group_by(SmartFeatures) %>%
-  summarise(Total_Count=n()) %>%
-  arrange(desc(Total_Count)) %>%
-  slice(1:5) %>%
-  ggplot(mapping=aes(x=fct_reorder(SmartFeatures, +Total_Count), y=Total_Count)) +
-  geom_col(position = "dodge", fill='maroon') + 
-  xlab('Smart Features') +
-  ylab('Total Count') +
-  ggtitle('Top 5 Most Popular Features') +
-  geom_text(aes(label=format(Total_Count, big.mark = ","), y=Total_Count, 
-            hjust=ifelse(Total_Count < mean(range(Total_Count)), -0.05, 1.1))) +
-  scale_y_continuous(labels = scales::comma) + 
-  coord_flip() +
-  theme(legend.position = "none") 
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-88-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
 The top 5 most frequently used smart features among the users possess a
 time measure (seconds, minutes and hourly). As the time factor of the
 features increased (from seconds to hourly), the frequency decreased.
 
-``` r
-mod_smart %>%
-  group_by(SmartFeatures) %>%
-  summarise(Total_Count=n()) %>%
-  arrange(Total_Count) %>%
-  slice(1:5) %>%
-  ggplot(mapping=aes(x=fct_reorder(SmartFeatures,+Total_Count), y=Total_Count)) +
-  geom_col(stat='identity', position = "dodge", fill='gold3') +
-  geom_text(aes(label=Total_Count, y=Total_Count, 
-            hjust=ifelse(Total_Count < mean(range(Total_Count)), -0.15, 1.1))) +
-  xlab('Smart Features') +
-  ylab('Total Count') +
-  ggtitle('Top 5 Least Popular Features') +
-  coord_flip() +
- theme(legend.position = "none") 
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-89-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
 
 The least used features have a total use count under 500 among the
 users. These features are compromised of the weight features and had
@@ -2214,39 +1720,13 @@ course of the month.
 
 #### Weekday Frequency
 
-``` r
-mod_smart %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday) %>%
-    ggplot(aes(x=Weekday, y=Frequency)) + 
-    geom_col(fill='cadetblue4') +
-    ggtitle('Weekday Frequency of Smart Features') +
-    scale_y_continuous(labels = scales::comma)
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-90-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
 The frequency of device usage was consistently over 1,000,000 throughout
 the weekdays. The highest usage was seen midweek, from Tuesday to
 Thursday.
 
-``` r
-mod_mins %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday, Features) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday) %>%
-    ggplot(aes(x=Weekday, y=Frequency, fill=Features)) + 
-    geom_col() +
-    ggtitle('Weekday Frequency of Common Features') +
-    scale_y_continuous(labels = scales::comma) +
-    theme(legend.position = "none") +
-    facet_grid(vars(Features))
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-91-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
 
 These three features, used by all sampled users, were consistently above
 150,000 use count throughout the week. The highest point of use across
@@ -2255,37 +1735,7 @@ frequency over 200,000.
 
 #### Time Frequency of Smart Features
 
-``` r
-library(patchwork) # side by side plot
-
-# count by hour
-m1 <- mod_smart %>% 
-  mutate(Hour=hours(Time)) %>%
-  group_by(Hour) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Hour) %>%
-    ggplot(aes(x=Hour, y=Frequency)) +
-    geom_area(fill='royalblue3', alpha=0.5) +
-    geom_line(color='royalblue3', size=1) +
-    ggtitle('Hourly Frequency of Smart \n Features') +
-    scale_y_continuous(labels = scales::comma)
-
-#count by minutes
-m2 <- mod_smart %>% 
-  mutate(Minutes=minutes(Time)) %>%
-  group_by(Minutes) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Minutes) %>%
-    ggplot(aes(x=Minutes, y=Frequency)) +
-    geom_area(fill='firebrick', alpha=0.5) +
-    geom_line(color='firebrick', size=1) +
-    ggtitle('Minute Frequency of Smart \n Features') +
-    scale_y_continuous(labels = scales::comma)
-
-m1+m2
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-92-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
 
 The hourly frequency of the smart features was greater than that of the
 minutes, but not as consistent. The smart features had a frequency of
@@ -2296,50 +1746,7 @@ remaining minutes had a consistent frequency over 125,000 uses.
 
 #### Time Frequency of Common Features
 
-``` r
-library(patchwork)
-
-h1 <- mod_mins %>%
-  mutate(Hours=hours(Time)) %>%
-  group_by(Hours, Features) %>%
-  summarise(Total_Count= n()) %>%
-  ggplot(aes(x=Hours, y=Total_Count, group=Features, color=Features)) +
-    geom_smooth(method = "loess",
-              se = FALSE,
-              formula = 'y ~ x',
-              span = 0.8) +
-    stat_smooth(se=FALSE, geom="area",
-              method = 'loess', alpha=0.5,
-              span = 0.8,aes(fill=Features)) +
-    ggtitle('Hourly Frequency of Common \n Features') +
-    theme(legend.position = "none") +
-    scale_y_continuous(labels = scales::comma) +
-    ylab("Frequency") +
-    facet_grid(vars(Features)) 
-
-
-h2 <- mod_mins %>%
-  mutate(Minutes=minutes(Time)) %>%
-  group_by(Minutes, Features) %>%
-  summarise(Total_Count= n()) %>%
-  ggplot(aes(x=Minutes, y=Total_Count, group=Features, color=Features)) +
-    geom_smooth(method = "loess",
-              se = FALSE,
-              formula = 'y ~ x',
-              span = 0.8) +
-    stat_smooth(se=FALSE, geom="area",
-              method = 'loess', alpha=0.5,
-              span = 0.8,aes(fill=Features)) +
-    ggtitle('Minute Frequency of Common \n Features') +
-    theme(legend.position = "none") +
-    scale_y_continuous(labels = scales::comma) +
-    ylab("Frequency") +
-    facet_grid(vars(Features)) 
-
-h1 + h2
-```
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-93-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
 
 The frequency of the three main features are consistent across the hours
 and minutes. The hourly frequency was identical to each each feature and
@@ -2348,7 +1755,7 @@ frequency was consistently over 20,000 across the minutes.
 
 ### Top Recommendations
 
-**1.** **Drop Least Popular Features**
+**Drop Least Popular Features**
 
 Bellabeat should consider dropping the five least popular smart
 features. This would allow the company to shift their resources onto
@@ -2357,7 +1764,7 @@ future customers. The company should also consider either discontinuing
 the manual reports for weight smart features or modifying it in order to
 apply to other popular features.
 
-**2.** **Develop ‘Heart’ Related Features**
+**Develop ‘Heart’ Related Features**
 
 Since the ‘HeartRateSec’ feature saw the most frequent use by all
 sampled users the company should develop more heart related features
@@ -2365,7 +1772,7 @@ such as blood pressure or a pulse monitor. They can also consider
 developing a device specifically related to cardio exercises to attract
 potential customers.
 
-**3.** **Develop ‘METS’ Related Features**
+**Develop ‘METS’ Related Features**
 
 The company should develop more ‘METs’ related features as it was among
 the top five most used features over the month and all 33 users made use
