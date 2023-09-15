@@ -1,7 +1,6 @@
 ---
 title: "Bellabeat Case Study"
 author: "Leopoldine Mirtil"
-date: "`r Sys.Date()`"
 output: rmarkdown::github_document
 ---
 
