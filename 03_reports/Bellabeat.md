@@ -5,13 +5,13 @@ Leopoldine Mirtil
 ### Disclaimer
 
 This analysis was made from the *Bellabeat Case Study: How Can a
-Wellness Technology Company Play It Smart?* offered through the Google
+Wellness Technology Company Play It Smart?*, offered through the Google
 Data Analytics Certificate program on Coursera.com. The data is from the
 [FitBit Fitness Tracker
 Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download)
-on Kaggle.com and was originally uploaded by the user Möbius for public
-use. The data covers one month of collection from 4/12/2016 to 5/12/2016
-from over 30 consenting users.
+from Kaggle.com and was originally uploaded by the user Möbius for
+public use. The data covers one month of collection from 4/12/2016 to
+5/12/2016 from over 30 consenting users.
 
 ## Introduction
 
@@ -30,52 +30,13 @@ will then help guide marketing strategy for the company. You will
 present your analysis to the Bellabeat executive team along with your
 high-level recommendations for Bellabeat’s marketing strategy.
 
-#### Stakeholders & Products
-
-- **Stakeholders**
-
-  - **Urška** **Sršen:** Bellabeat’s cofounder and Chief Creative
-    Officer
-
-  - **Sando** **Mur:** Mathematician and Bellabeat’s cofounder; key
-    member of the Bellabeat executive team
-
-  - **Bellabeat** **marketing** **analytics** **team:** A team of data
-    analysts responsible for collecting, analyzing, and reporting data
-    that helps guide Bellabeat’s marketing strategy. You joined this
-    team six months ago and have been busy learning about Bellabeat’’s
-    mission and business goals — as well as how you, as a junior data
-    analyst, can help Bellabeat achieve them.
-
-- **Products**
-
-  - **Bellabeat** **app:** The Bellabeat app provides users with health
-    data related to their activity, sleep, stress, menstrual cycle, and
-    mindfulness habits. This data can help users better understand their
-    current habits and make healthy decisions. The Bellabeat app
-    connects to their line of smart wellness products.
-
-  - **Leaf:** Bellabeat’s classic wellness tracker can be worn as a
-    bracelet, necklace, or clip. The Leaf tracker connects to the
-    Bellabeat app to track activity, sleep, and stress.
-
-  - **Time:** This wellness watch combines the timeless look of a
-    classic timepiece with smart technology to track user activity,
-    sleep, and stress. The Time watch connects to the Bellabeat app to
-    provide you with insights into your daily wellness.
-
-  - **Spring:** This is a water bottle that tracks daily water intake
-    using smart technology to ensure that you are appropriately hydrated
-    throughout the day. The Spring bottle connects to the Bellabeat app
-    to track your hydration levels.
-
 #### Tasks
 
 1.  What are some trends in smart device usage?
 2.  How could these trends apply to Bellabeat customers?
 3.  How could these trends help influence Bellabeat marketing strategy?
 
-## Get Started
+## Get to Work
 
 ### Step 1 - Import Data
 
@@ -92,11 +53,8 @@ library(pastecs)
 library(ggplot2)
 ```
 
-#### Remove Scientific Notation Format
-
-``` r
-options(scipen = 50) 
-```
+I chose these specific packages to enable: data manipulation,
+documentation, descriptive statistics and visualization.
 
 #### Set Directory & Import Data
 
@@ -123,9 +81,16 @@ sleepDay <- read.csv('sleepDay_merged.csv')
 weightLog <- read.csv('weightLogInfo_merged.csv')
 ```
 
+I set the directory first to make it easier to import all the data files
+without having to include the full file path every time.
+
 ### Step 2 - Clean Data
 
 #### Review Daily Data Sets
+
+I noticed that the ‘dailyActs’ file had similar columns to the other
+daily data sets. I decided to first confirm if they were identical, and
+if so, remove those files.
 
 ##### Compare Daily Dataframes
 
@@ -182,58 +147,48 @@ all.equal(dailyActs$ActivityDate, dailyInts$ActivityDay)
     ## [1] TRUE
 
 ``` r
-all.equal(dailyActs[7:14], dailyInts[3:10]) 
-```
-
-    ## [1] "Names: 8 string mismatches"                      
-    ## [2] "Component 1: Mean relative difference: 658.6282" 
-    ## [3] "Component 2: Mean relative difference: 338.7327" 
-    ## [4] "Component 3: Mean relative difference: 3.696319" 
-    ## [5] "Component 4: Mean relative difference: 13175.42" 
-    ## [6] "Component 5: Mean relative difference: 0.9999945"
-    ## [7] "Component 6: Mean relative difference: 0.9103451"
-    ## [8] "Component 7: Mean relative difference: 0.9970565"
-    ## [9] "Component 8: Mean relative difference: 0.998484"
-
-``` r
-##convert columns of dailyActs & dailyInts to data tables for comparison
+#dailyActs vs dailyInts
+##convert columns into data tables for comparison
 d_Acts <- data.table::setDT(dailyActs[7:14])
 d_Ints <- data.table::setDT(dailyInts[3:10])
 
-all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)# ignore column order
+all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)
 ```
 
     ## [1] TRUE
 
+I had to convert the remaining columns in ‘dailyActs’ & ‘dailyInts’ into
+data tables, due to different column orders, in order to perform a
+comparison.
+
+``` r
+#compare similar columns 'TotalDistance' vs 'TrackerDistance'
+tod <- data.table::setDT(dailyActs[5])
+trd <- data.table::setDT(dailyActs[6])
+
+all.equal(tod, trd)
+```
+
+    ## [1] "Different column names"
+
+``` r
+#remove a column
+dailyActs <- select(dailyActs, -c(TotalDistance))
+```
+
+I removed the ‘TotalDistance’ column after confirming it was identical
+to the ‘TrackerDistance’ column, other than the column name. There was
+no point in having a duplicate column.
+
 ##### Change Data Type of Column
 
 ``` r
-#will be a common point in other data sets
 dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') 
 ```
 
-##### Examine Modified ‘dailyActs’ Dataframe
-
-``` r
-str(dailyActs)
-```
-
-    ## 'data.frame':    940 obs. of  15 variables:
-    ##  $ Id                      : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityDate            : Date, format: "2016-04-12" "2016-04-13" ...
-    ##  $ TotalSteps              : int  13162 10735 10460 9762 12669 9705 13019 15506 10544 9819 ...
-    ##  $ TotalDistance           : num  8.5 6.97 6.74 6.28 8.16 ...
-    ##  $ TrackerDistance         : num  8.5 6.97 6.74 6.28 8.16 ...
-    ##  $ LoggedActivitiesDistance: num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ VeryActiveDistance      : num  1.88 1.57 2.44 2.14 2.71 ...
-    ##  $ ModeratelyActiveDistance: num  0.55 0.69 0.4 1.26 0.41 ...
-    ##  $ LightActiveDistance     : num  6.06 4.71 3.91 2.83 5.04 ...
-    ##  $ SedentaryActiveDistance : num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ VeryActiveMinutes       : int  25 21 30 29 36 38 42 50 28 19 ...
-    ##  $ FairlyActiveMinutes     : int  13 19 11 34 10 20 16 31 12 8 ...
-    ##  $ LightlyActiveMinutes    : int  328 217 181 209 221 164 233 264 205 211 ...
-    ##  $ SedentaryMinutes        : int  728 776 1218 726 773 539 1149 775 818 838 ...
-    ##  $ Calories                : int  1985 1797 1776 1745 1863 1728 1921 2035 1786 1775 ...
+After removing the unnecessary ‘daily’ files, I changed the data type
+and format of the ‘ActivityDate’ column as I will use it as a key point
+when merging the data sets later on.
 
 #### Review Hourly Data sets
 
@@ -265,6 +220,9 @@ all.equal(hrSteps$ActivityHour, hrInts$ActivityHour)
 
     ## [1] TRUE
 
+I confirmed that the ‘Id’ and ‘ActivityHour’ columns were identical in
+order to use both as keys when merging the data files.
+
 ##### Merge Hourly Data Sets
 
 ``` r
@@ -287,7 +245,7 @@ str(hourlyActs)
 ##### Compare Minute Data Frames
 
 ``` r
-# check Id&ActivityMinute columns of min_narrow datasets
+# check Id&ActivityMinute columns 
 all.equal(minCalsN[1:2],minStepsN[1:2])
 ```
 
@@ -306,7 +264,6 @@ all.equal(minCalsN[1:2],minMETsN[1:2])
     ## [1] TRUE
 
 ``` r
-# check Id&ActivityMinute columns of min_wide datasets
 all.equal(minCalsW[1:2],minStepsW[1:2])
 ```
 
@@ -317,6 +274,9 @@ all.equal(minIntsW[1:2],minCalsW[1:2])
 ```
 
     ## [1] TRUE
+
+Same as above, I confirmed that the ‘Id’ and ‘ActivityMinute’ columns
+were identical before merging the files.
 
 ##### Merge Minute-Narrow Dataframes
 
@@ -337,112 +297,7 @@ str(minActsN)
 
 ``` r
 minWide <- bind_cols(minCalsW, minIntsW[,3:62], minStepsW[,3:62]) 
-
-# view new data set
-str(minWide)
 ```
-
-    ## 'data.frame':    21645 obs. of  182 variables:
-    ##  $ Id          : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ ActivityHour: chr  "4/13/2016 12:00:00 AM" "4/13/2016 1:00:00 AM" "4/13/2016 2:00:00 AM" "4/13/2016 3:00:00 AM" ...
-    ##  $ Calories00  : num  1.888 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories01  : num  2.202 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories02  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories03  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories04  : num  0.944 0.944 0.786 0.786 0.786 ...
-    ##  $ Calories05  : num  2.045 0.944 0.786 0.786 0.786 ...
-    ##  $ Calories06  : num  0.944 0.944 0.786 0.786 0.786 ...
-    ##  $ Calories07  : num  2.202 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories08  : num  0.944 0.944 0.786 0.786 0.786 ...
-    ##  $ Calories09  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories10  : num  0.944 0.944 0.786 0.786 0.786 ...
-    ##  $ Calories11  : num  0.786 0.786 0.786 2.045 0.786 ...
-    ##  $ Calories12  : num  0.786 0.944 0.786 0.944 0.786 ...
-    ##  $ Calories13  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories14  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories15  : num  0.944 0.786 0.786 0.944 0.786 ...
-    ##  $ Calories16  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories17  : num  0.786 0.786 0.786 0.944 0.786 ...
-    ##  $ Calories18  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories19  : num  0.786 0.786 0.786 0.786 0.944 ...
-    ##  $ Calories20  : num  1.888 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories21  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories22  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories23  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories24  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories25  : num  2.045 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories26  : num  2.359 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories27  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories28  : num  2.045 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories29  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories30  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories31  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories32  : num  2.045 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories33  : num  1.888 0.786 0.786 0.944 0.786 ...
-    ##  $ Calories34  : num  0.944 0.786 0.786 2.045 0.786 ...
-    ##  $ Calories35  : num  0.786 0.786 0.786 2.045 0.786 ...
-    ##  $ Calories36  : num  0.786 0.786 0.786 1.888 0.786 ...
-    ##  $ Calories37  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories38  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories39  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories40  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories41  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories42  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories43  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories44  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories45  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories46  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories47  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories48  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories49  : num  0.786 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories50  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories51  : num  2.045 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories52  : num  2.045 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories53  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories54  : num  2.359 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories55  : num  1.888 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories56  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories57  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories58  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Calories59  : num  0.944 0.786 0.786 0.786 0.786 ...
-    ##  $ Intensity00 : int  1 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity01 : int  1 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity02 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity03 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity04 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity05 : int  1 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity06 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity07 : int  1 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity08 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity09 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity10 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity11 : int  0 0 0 1 0 0 0 0 1 1 ...
-    ##  $ Intensity12 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity13 : int  0 0 0 0 0 0 0 0 1 1 ...
-    ##  $ Intensity14 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity15 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity16 : int  0 0 0 0 0 0 0 0 0 1 ...
-    ##  $ Intensity17 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity18 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity19 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity20 : int  1 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity21 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity22 : int  0 0 0 0 0 0 0 0 1 0 ...
-    ##  $ Intensity23 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity24 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity25 : int  1 0 0 0 0 0 0 1 0 0 ...
-    ##  $ Intensity26 : int  1 0 0 0 0 0 0 1 0 0 ...
-    ##  $ Intensity27 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity28 : int  1 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity29 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity30 : int  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity31 : int  0 0 0 0 0 0 0 1 0 0 ...
-    ##  $ Intensity32 : int  1 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity33 : int  1 0 0 0 0 0 0 0 0 0 ...
-    ##  $ Intensity34 : int  0 0 0 1 0 0 0 0 0 0 ...
-    ##  $ Intensity35 : int  0 0 0 1 0 0 0 0 0 0 ...
-    ##  $ Intensity36 : int  0 0 0 1 0 0 0 0 1 1 ...
-    ##   [list output truncated]
 
 ### Step 3 - Modify Data
 
@@ -458,6 +313,9 @@ minSleep <- rename(minSleep, MinSleepId=Id, MinSleepDateTime=date, MinSleepValue
 weightLog <- rename(weightLog, WeightId=Id, WeightDateTime=Date, WeightLogId=LogId)
 minWide <- rename(minWide, DateTime=ActivityHour)
 ```
+
+I changed the names of these columns to be more descriptive and for
+easier identification when combining all the files.
 
 #### Add New Columns
 
@@ -483,24 +341,37 @@ sleepDay$SleepTime <- chron(times.=(format(strptime(sleepDay$SleepDateTime, '%m/
 weightLog$WeightTime <- chron(times.=(format(strptime(weightLog$WeightDateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
 hrate_sec$HRateTime <- chron(times.=(format(strptime(hrate_sec$HRateDateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
 minWide$Time <- chron(times.=(format(strptime(minWide$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+dailyActs$DailyTime <- chron(times.=(as.numeric(NA))) 
 ```
+
+I added date and time columns to the data sets to use as primary keys
+when merging all the files together.
 
 #### Reorganize Columns
 
 ``` r
-# move new Date & Time cols after Date/Time cols in each dataset
-# make it easier to merge data sets all together
+# move new Date & Time cols 
 hourlyActs <- hourlyActs[, c(1, 2, 7, 8, 3:6)]
-dailyActs <- dailyActs[, c(1, 2, 15, 3:14)] #move 'DailyCalories' column for easy viewing
 minActsN <- minActsN[, c(1, 2, 7, 8, 3:6)]
 minSleep <- minSleep[, c(1, 2, 5, 6, 3, 4)]
 sleepDay <- sleepDay[, c(1, 2, 6, 7, 3:5)]
 weightLog <- weightLog[, c(1, 2, 9, 10, 3:8)]
 hrate_sec <- hrate_sec[, c(1, 2, 4, 5, 3)]
 minWide <- minWide[, c(1, 2, 183, 184, 3:182)]
+
+#move 'DailyCalories' and Time
+dailyActs <- dailyActs[, c(1, 2, 15, 14, 3:13)] 
 ```
 
+I moved the new date and time columns for readability and to make it
+easier to merge the data sets all together. I also took the time to move
+the ‘DailyCalories’ column from the end of the ‘dailyActs’ data set.
+
 #### Confirm Date Ranges
+
+The data was collected over a one month period from 4/12/2016 to
+5/12/2016. I decided to verify that all dates of all the data sets were
+in range.
 
 ``` r
 range(dailyActs$DailyActsDate)
@@ -550,6 +421,9 @@ range(minWide$Date)
 
     ## [1] "2016-04-13" "2016-05-13"
 
+The only data sets containing out of range dates are ‘minSleep’
+(4/11/2016 - 5/12/2016) and ‘minWide’ (4/13/2016- 5/13/2016).
+
 #### Remove Out of Range Dates
 
 ``` r
@@ -569,77 +443,27 @@ range(minWide$Date)
 
     ## [1] "2016-04-13" "2016-05-12"
 
-#### Count NA Values
+I decided to remove the out of range dates from both data sets in order
+to keep the dates within range.
+
+#### Convert Logical Values to Integers
 
 ``` r
-# count of NA values
-sum(is.na(dailyActs)) 
+weightLog$IsManualReport <- as.integer(as.logical(weightLog$IsManualReport))
 ```
 
-    ## [1] 0
-
-``` r
-sum(is.na(hourlyActs))
-```
-
-    ## [1] 0
-
-``` r
-sum(is.na(minActsN)) 
-```
-
-    ## [1] 0
-
-``` r
-sum(is.na(minSleep))
-```
-
-    ## [1] 0
-
-``` r
-sum(is.na(sleepDay)) 
-```
-
-    ## [1] 0
-
-``` r
-sum(is.na(weightLog)) 
-```
-
-    ## [1] 65
-
-``` r
-sum(is.na(hrate_sec))
-```
-
-    ## [1] 0
-
-``` r
-sum(is.na(minWide)) 
-```
-
-    ## [1] 0
-
-#### Examine Dataset for NA values
-
-``` r
-# examine 'weightLog' data for location of all NA vals
-apply(X = is.na(weightLog), MARGIN = 2, FUN = sum)
-```
-
-    ##       WeightId WeightDateTime     WeightDate     WeightTime       WeightKg 
-    ##              0              0              0              0              0 
-    ##   WeightPounds            Fat            BMI IsManualReport    WeightLogId 
-    ##              0             65              0              0              0
-
-Decided not to remove the NA values from the data frame to avoid skewing
-the results.
+I converted the logical values of the ‘IsManualReport’ column into
+integers where TRUE=1 and FALSE=0. I did this to enable easier analysis
+of this feature.
 
 #### Remove Column
 
 ``` r
 minWide <- select(minWide, -c(DateTime))
 ```
+
+I removed this column because it was unneeded after adding the date and
+time columns.
 
 #### Export Modified Dataframes
 
@@ -655,6 +479,10 @@ write.csv(minWide, "minWide.csv", row.names = FALSE)
 write.csv(sleepDay, "sleepDay.csv", row.names = FALSE)
 write.csv(weightLog, "weightLog.csv", row.names = FALSE)
 ```
+
+I exported these modified files as a precaution before merging the
+remaining data sets together. If anything goes wrong, I would be able to
+start over from this point.
 
 #### Merge Data Sets
 
@@ -687,7 +515,7 @@ use4 <- full_join(use2, use3, by=join_by(DailyId==MinActsId, DailyActsDate==Minu
 rm(use2, use3)
 gc()
 
-### will add remaining data sets separately to primary table ##################
+### will add remaining data sets separately to primary data
 # join use4 + hrate
 use5 <- full_join(use4, hrate_sec, by=join_by(DailyId==HRateId, DailyActsDate==HRateDate, Minutes==HRateTime), keep=TRUE) 
 use5 <- select(use5, -c(HRateDateTime))
@@ -699,113 +527,59 @@ rm(use4, use5, hrate_sec, weightLog) #clear environment
 gc()
 ```
 
+I merged all the remaining data sets together except the ‘minWide’ data
+set due to its different format. Since I was creating a large data file,
+I cleared up unnecessary columns and memory in between merging files to
+avoid a system crash.
+
 #### Export Merged Data Frame
 
 ``` r
 # set directory
 setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Case Study/01_tidy_data')
 
-#export final merged file as precaution
+#export file 
 write.csv(smart_dev_use, 'smart_dev_use.csv', row.names = FALSE)
 ```
 
+I made sure to export the merged file as a precaution before making
+further modifications to the data.
+
 ### Step 4- Further Modify Combined Dataset
-
-#### Inspect Merged Data Frame
-
-``` r
-str(smart_dev_use)
-```
-
-    ## 'data.frame':    3893669 obs. of  53 variables:
-    ##  $ DailyId                 : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
-    ##  $ DailyActsDate           : Date, format: "2016-04-12" "2016-04-13" ...
-    ##  $ DailyCalories           : int  1985 1797 1776 1745 1863 1728 1921 2035 1786 1775 ...
-    ##  $ TotalSteps              : int  13162 10735 10460 9762 12669 9705 13019 15506 10544 9819 ...
-    ##  $ TotalDistance           : num  8.5 6.97 6.74 6.28 8.16 ...
-    ##  $ TrackerDistance         : num  8.5 6.97 6.74 6.28 8.16 ...
-    ##  $ LoggedActivitiesDistance: num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ VeryActiveDistance      : num  1.88 1.57 2.44 2.14 2.71 ...
-    ##  $ ModeratelyActiveDistance: num  0.55 0.69 0.4 1.26 0.41 ...
-    ##  $ LightActiveDistance     : num  6.06 4.71 3.91 2.83 5.04 ...
-    ##  $ SedentaryActiveDistance : num  0 0 0 0 0 0 0 0 0 0 ...
-    ##  $ VeryActiveMinutes       : int  25 21 30 29 36 38 42 50 28 19 ...
-    ##  $ FairlyActiveMinutes     : int  13 19 11 34 10 20 16 31 12 8 ...
-    ##  $ LightlyActiveMinutes    : int  328 217 181 209 221 164 233 264 205 211 ...
-    ##  $ SedentaryMinutes        : int  728 776 1218 726 773 539 1149 775 818 838 ...
-    ##  $ SleepDayId              : num  1503960366 1503960366 NA 1503960366 1503960366 ...
-    ##  $ SleepDate               : Date, format: "2016-04-12" "2016-04-13" ...
-    ##  $ SleepTime               : 'times' num  00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 ...
-    ##   ..- attr(*, "format")= chr "h:m:s"
-    ##  $ TotalSleepRecords       : int  1 2 NA 1 2 1 NA 1 1 1 ...
-    ##  $ TotalMinutesAsleep      : int  327 384 NA 412 340 700 NA 304 360 325 ...
-    ##  $ TotalTimeInBed          : int  346 407 NA 442 367 712 NA 320 377 364 ...
-    ##  $ HourlyId                : num  1503960366 1503960366 NA 1503960366 1503960366 ...
-    ##  $ HourlyDate              : Date, format: "2016-04-12" "2016-04-13" ...
-    ##  $ Hour                    : 'times' num  00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 ...
-    ##   ..- attr(*, "format")= chr "h:m:s"
-    ##  $ HourlyCalories          : int  81 69 NA 60 77 47 NA 47 54 54 ...
-    ##  $ HourlyStepTotal         : int  373 144 NA 83 459 0 NA 0 16 17 ...
-    ##  $ HourlyTotalIntensity    : int  20 14 NA 6 15 0 NA 0 2 2 ...
-    ##  $ HourlyAverageIntensity  : num  0.333 0.233 NA 0.1 0.25 ...
-    ##  $ MinActsId               : num  1503960366 1503960366 NA 1503960366 1503960366 ...
-    ##  $ MinuteDates             : Date, format: "2016-04-12" "2016-04-13" ...
-    ##  $ Minutes                 : 'times' num  00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 ...
-    ##   ..- attr(*, "format")= chr "h:m:s"
-    ##  $ MinuteCalories          : num  0.786 1.888 NA 0.944 4.09 ...
-    ##  $ MinuteSteps             : int  0 4 NA 0 77 0 NA 0 0 0 ...
-    ##  $ MinuteIntensity         : int  0 1 NA 0 2 0 NA 0 0 0 ...
-    ##  $ MinutesMETs             : int  10 24 NA 12 52 10 NA 10 12 12 ...
-    ##  $ MinSleepId              : num  NA NA NA NA NA ...
-    ##  $ MinSleepDate            : Date, format: NA NA ...
-    ##  $ SleepMinutes            : 'times' num  NA NA NA NA NA 00:00:00 NA NA NA NA ...
-    ##   ..- attr(*, "format")= chr "h:m:s"
-    ##  $ MinSleepValue           : int  NA NA NA NA NA 1 NA NA NA NA ...
-    ##  $ MinSleepLogId           : num  NA NA NA NA NA ...
-    ##  $ HRateId                 : num  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ HRateDate               : Date, format: NA NA ...
-    ##  $ HRateTime               : 'times' num  NA NA NA NA NA NA NA NA NA NA ...
-    ##   ..- attr(*, "format")= chr "h:m:s"
-    ##  $ HeartRateSec            : int  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ WeightId                : num  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ WeightDate              : Date, format: NA NA ...
-    ##  $ WeightTime              : 'times' num  NA NA NA NA NA NA NA NA NA NA ...
-    ##   ..- attr(*, "format")= chr "h:m:s"
-    ##  $ WeightKg                : num  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ WeightPounds            : num  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ Fat                     : int  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ BMI                     : num  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ IsManualReport          : chr  NA NA NA NA ...
-    ##  $ WeightLogId             : num  NA NA NA NA NA NA NA NA NA NA ...
 
 #### Create Primary Id column
 
 ``` r
-# want one singular Id col in dataset
-# find way to add missing 'Ids' to 'DailyId' col if present in others
+#new copy in case of error
 smartDev <- smart_dev_use  
 
 # Primary Id column == DailyId
-## Id columns: SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId 
-# will use all except SleepDayId (in range)
+# use all except SleepDayId (in range)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$MinActsId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$HourlyId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$HRateId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$MinSleepId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$WeightId, smartDev$DailyId)
 
-## confirm no more NA values in Id
+# remove other Id columns
+smartDev <- select(smartDev, -c(SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId, MinSleepLogId, WeightLogId))
+
+## confirm no more NA values 
 sum(is.na(smartDev$DailyId))
 ```
 
     ## [1] 0
 
+I turned the ‘DailyId’ column into the primary ‘Id’ column. I used the
+ifelse function to fill the blank spaces with the other Id columns,
+except for the ‘SleepDayId’ which was already in range. I confirmed
+there were no missing values after modifying the column.
+
 #### Create Primary Date Column
 
 ``` r
 # Primary Column: DailyActsDate
-# Date columns: SleepDate, HourlyDate, MinuteDates, MinSleepDate, HRateDate, WeightDate
-# use all except SleepDate(already in range)
+# use all dates except SleepDate(in range)
 smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, MinuteDates))
 smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, HourlyDate))
 smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, HRateDate))
@@ -815,19 +589,24 @@ smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, WeightDate
 # remove date columns
 smartDev <- select(smartDev, -c(SleepDate, HourlyDate, MinuteDates, MinSleepDate, HRateDate, WeightDate))
 
-## confirm no more NA values in Date
+## confirm no more NA values 
 sum(is.na(smartDev$DailyActsDate))
 ```
 
     ## [1] 0
 
+I turned the ‘DailyActsDate’ column into the primary date column,
+filling the column with the values from the other date columns. I
+removed the other date columns and confirmed that the primary had no
+missing values.
+
 #### Create Primary Time Column
 
 ``` r
-smartDev$Time <- smartDev$SleepTime
+smartDev <- rename(smartDev, Time=DailyTime)
 
-# merge other time columns # times: Hour, Minutes, SleepMinutes, HRateTime, WeightTime (covers largest time incl SleepTime)
 # merge time columns
+smartDev <- smartDev %>% mutate(Time=coalesce(Time, SleepTime))
 smartDev <- smartDev %>% mutate(Time=coalesce(Time, Minutes))
 smartDev <- smartDev %>% mutate(Time=coalesce(Time, Hour))
 smartDev <- smartDev %>% mutate(Time=coalesce(Time, HRateTime))
@@ -836,18 +615,16 @@ smartDev <- smartDev %>% mutate(Time=coalesce(Time, WeightTime))
 
 # remove columns
 smartDev <- select(smartDev, -c(SleepTime, Hour, Minutes, SleepMinutes, HRateTime, WeightTime))
-
-# move new 'Time' column to after date
-smartDev <- smartDev[, c(1, 2, 42, 3:41)]
 ```
 
-#### Rename Modified Column
+I used the other time columns to fill in the blanks of the primary
+‘Time’ column. I moved the time column from the end to after the date
+column for easier readability.
+
+#### Clean up Modified Data Frame
 
 ``` r
-# remove other Id columns
-smartDev <- select(smartDev, -c(SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId, MinSleepLogId, WeightLogId))
-
-# Rename columns
+#Rename columns
 smartDev <- rename(smartDev, Id=DailyId, Date=DailyActsDate)
 
 # clear environment
@@ -855,20 +632,22 @@ rm(smart_dev_use)
 gc()
 ```
 
+I renamed the primary columns to those that are more self-descriptive
+and appropriate.
+
 #### View Merged Dataframe
 
 ``` r
 str(smartDev)
 ```
 
-    ## 'data.frame':    3893669 obs. of  34 variables:
+    ## 'data.frame':    3893669 obs. of  33 variables:
     ##  $ Id                      : num  1503960366 1503960366 1503960366 1503960366 1503960366 ...
     ##  $ Date                    : Date, format: "2016-04-12" "2016-04-13" ...
     ##  $ Time                    : 'times' num  00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 NA 00:00:00 00:00:00 00:00:00 ...
     ##   ..- attr(*, "format")= chr "h:m:s"
     ##  $ DailyCalories           : int  1985 1797 1776 1745 1863 1728 1921 2035 1786 1775 ...
     ##  $ TotalSteps              : int  13162 10735 10460 9762 12669 9705 13019 15506 10544 9819 ...
-    ##  $ TotalDistance           : num  8.5 6.97 6.74 6.28 8.16 ...
     ##  $ TrackerDistance         : num  8.5 6.97 6.74 6.28 8.16 ...
     ##  $ LoggedActivitiesDistance: num  0 0 0 0 0 0 0 0 0 0 ...
     ##  $ VeryActiveDistance      : num  1.88 1.57 2.44 2.14 2.71 ...
@@ -896,7 +675,7 @@ str(smartDev)
     ##  $ WeightPounds            : num  NA NA NA NA NA NA NA NA NA NA ...
     ##  $ Fat                     : int  NA NA NA NA NA NA NA NA NA NA ...
     ##  $ BMI                     : num  NA NA NA NA NA NA NA NA NA NA ...
-    ##  $ IsManualReport          : chr  NA NA NA NA ...
+    ##  $ IsManualReport          : int  NA NA NA NA NA NA NA NA NA NA ...
 
 #### Export Final Merged Dataframe
 
@@ -907,6 +686,9 @@ setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Ca
 write.csv(smartDev, 'smartDev.csv', row.names = FALSE)
 ```
 
+I exported the final merged file as a precaution before manipulating the
+files further.
+
 ### Step 5 - Transpose Dataframes
 
 #### Pivot Smart Features Dataframe
@@ -915,10 +697,10 @@ write.csv(smartDev, 'smartDev.csv', row.names = FALSE)
 # create new dataframe in case of error
 smart_d2 <- smartDev
 
-#transpose data while keeping 3 cols: Id(inc), Dates, & Time
+#transpose data 
 mod_smart <- 
 smart_d2 %>%
-  pivot_longer(cols=c(DailyCalories:MinSleepValue, HeartRateSec:BMI), 
+  pivot_longer(cols=c(DailyCalories:IsManualReport), 
                names_to = 'SmartFeatures', 
                values_to = 'Values', 
                values_drop_na = TRUE)
@@ -927,20 +709,26 @@ smart_d2 %>%
 head(mod_smart) 
 ```
 
-    ## # A tibble: 6 × 6
-    ##           Id Date       Time     IsManualReport SmartFeatures             Values
-    ##        <dbl> <date>     <times>  <chr>          <chr>                      <dbl>
-    ## 1 1503960366 2016-04-12 00:00:00 <NA>           DailyCalories             1.98e3
-    ## 2 1503960366 2016-04-12 00:00:00 <NA>           TotalSteps                1.32e4
-    ## 3 1503960366 2016-04-12 00:00:00 <NA>           TotalDistance             8.5 e0
-    ## 4 1503960366 2016-04-12 00:00:00 <NA>           TrackerDistance           8.5 e0
-    ## 5 1503960366 2016-04-12 00:00:00 <NA>           LoggedActivitiesDistance  0     
-    ## 6 1503960366 2016-04-12 00:00:00 <NA>           VeryActiveDistance        1.88e0
+    ## # A tibble: 6 × 5
+    ##           Id Date       Time     SmartFeatures               Values
+    ##        <dbl> <date>     <times>  <chr>                        <dbl>
+    ## 1 1503960366 2016-04-12 00:00:00 DailyCalories             1985    
+    ## 2 1503960366 2016-04-12 00:00:00 TotalSteps               13162    
+    ## 3 1503960366 2016-04-12 00:00:00 TrackerDistance              8.5  
+    ## 4 1503960366 2016-04-12 00:00:00 LoggedActivitiesDistance     0    
+    ## 5 1503960366 2016-04-12 00:00:00 VeryActiveDistance           1.88 
+    ## 6 1503960366 2016-04-12 00:00:00 ModeratelyActiveDistance     0.550
 
-##### Pivot Minute-Wide Features Dataframe
+I decided to transpose (or pivot) the data to have all the smart
+features in one column and their values in another. As seen above, it
+cut down the amount of columns and will make it easier to efficiently
+analyze the data.
+
+#### Pivot Minute-Wide Features Dataframe
+
+##### Create Features Column
 
 ``` r
-#pivot data, keeping Id, Date, and Time cols
 ## split Cals00-59, Steps00-59, Ints00-59 
 mod_minWide <-
 minWide %>%
@@ -954,15 +742,15 @@ head(mod_minWide)
 ```
 
     ## # A tibble: 6 × 64
-    ##           Id Date       Time  Featu…¹  `00`   `01`  `02`  `03`  `04`  `05`  `06`
-    ##        <dbl> <date>     <tim> <chr>   <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
-    ## 1 1503960366 2016-04-13 00:0… Calori… 1.89   2.20  0.944 0.944 0.944 2.04  0.944
-    ## 2 1503960366 2016-04-13 00:0… Intens… 1      1     0     0     0     1     0    
-    ## 3 1503960366 2016-04-13 00:0… Steps   4     16     0     0     0     9     0    
-    ## 4 1503960366 2016-04-13 01:0… Calori… 0.786  0.786 0.786 0.786 0.944 0.944 0.944
-    ## 5 1503960366 2016-04-13 01:0… Intens… 0      0     0     0     0     0     0    
-    ## 6 1503960366 2016-04-13 01:0… Steps   0      0     0     0     0     0     0    
-    ## # … with 53 more variables: `07` <dbl>, `08` <dbl>, `09` <dbl>, `10` <dbl>,
+    ##          Id Date       Time  Features  `00`   `01`  `02`  `03`  `04`  `05`  `06`
+    ##       <dbl> <date>     <tim> <chr>    <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+    ## 1    1.50e9 2016-04-13 00:0… Calories 1.89   2.20  0.944 0.944 0.944 2.04  0.944
+    ## 2    1.50e9 2016-04-13 00:0… Intensi… 1      1     0     0     0     1     0    
+    ## 3    1.50e9 2016-04-13 00:0… Steps    4     16     0     0     0     9     0    
+    ## 4    1.50e9 2016-04-13 01:0… Calories 0.786  0.786 0.786 0.786 0.944 0.944 0.944
+    ## 5    1.50e9 2016-04-13 01:0… Intensi… 0      0     0     0     0     0     0    
+    ## 6    1.50e9 2016-04-13 01:0… Steps    0      0     0     0     0     0     0    
+    ## # ℹ 53 more variables: `07` <dbl>, `08` <dbl>, `09` <dbl>, `10` <dbl>,
     ## #   `11` <dbl>, `12` <dbl>, `13` <dbl>, `14` <dbl>, `15` <dbl>, `16` <dbl>,
     ## #   `17` <dbl>, `18` <dbl>, `19` <dbl>, `20` <dbl>, `21` <dbl>, `22` <dbl>,
     ## #   `23` <dbl>, `24` <dbl>, `25` <dbl>, `26` <dbl>, `27` <dbl>, `28` <dbl>,
@@ -970,8 +758,15 @@ head(mod_minWide)
     ## #   `35` <dbl>, `36` <dbl>, `37` <dbl>, `38` <dbl>, `39` <dbl>, `40` <dbl>,
     ## #   `41` <dbl>, `42` <dbl>, `43` <dbl>, `44` <dbl>, `45` <dbl>, `46` <dbl>, …
 
+Since the feature columns were basically formatted as “Feature##”, with
+“\##” going from 00 to 59, it made sense to split the column between the
+word and numbers. I saw there was more to be done after initially
+transposing the data, especially to cut down on the number of columns.
+
+##### Create Minutes Column
+
 ``` r
-### further transpose to create new Minutes column 
+##create new Minutes column 
 mod_mins <-
 mod_minWide %>%
 pivot_longer(cols = !c(Id, Date, Time, Features),
@@ -979,7 +774,7 @@ pivot_longer(cols = !c(Id, Date, Time, Features),
              values_to = 'Value') %>%
   rename(Hour=Time) 
 
-#reorder  columns to move 'Minutes' after Hour
+#move 'Minutes' after Hour
 mod_mins <- mod_mins[,c(1:3,5,4,6)] 
 mod_mins$Minutes <- chron(times.=(format(strptime(mod_mins$Minutes, '%M'), '%H:%M:%S')))
 
@@ -997,8 +792,16 @@ head(mod_mins)
     ## 5 1503960366 2016-04-13 00:00:00 00:04:00 Calories 0.944
     ## 6 1503960366 2016-04-13 00:00:00 00:05:00 Calories 2.04
 
+I created a new ‘Minutes’ column from the ‘00-59’ column range, severely
+cutting down the number of columns. I also moved the feature values into
+their own column. I renamed the ‘Time’ column to ‘Hour’ since it is more
+accurate especially with the new column. I ended up changing the data
+type of the ‘Minutes’ column and moved it after the ‘Hour’ column in
+preparation of merging the two columns.
+
+##### Merge Time Columns
+
 ``` r
-#merge Minutes and Hours into new 'Time' column
 mod_mins <-
 mod_mins %>% 
   mutate(Hour=hours(Hour), Minutes=minutes(Minutes)) %>%
@@ -1019,23 +822,10 @@ head(mod_mins)
     ## 5 1503960366 2016-04-13 00:04:00 Calories 0.944
     ## 6 1503960366 2016-04-13 00:05:00 Calories 2.04
 
-##### Check for NA Values
+I created a new ‘Time’ column by merging the ‘Hour’ and ‘Minutes’
+columns, while also converting it to the ‘times’ data type.
 
-``` r
-#expect a fair amount as users did not use all features at all times
-sum(is.na(mod_smart)) 
-```
-
-    ## [1] 8084608
-
-``` r
-# should be zero, same as before
-sum(is.na(mod_mins))
-```
-
-    ## [1] 0
-
-#### Export Modified File
+#### Export Final Modified Files
 
 ``` r
 setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Case Study/01_tidy_data')
@@ -1043,6 +833,8 @@ setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Ca
 write.csv(mod_smart, 'mod_smart.csv', row.names = FALSE)
 write.csv(mod_mins, 'mod_mins.csv', row.names = FALSE)
 ```
+
+I made sure to export both files after all the modifications.
 
 ### Step 6 - Analyze Data
 
@@ -1052,61 +844,38 @@ write.csv(mod_mins, 'mod_mins.csv', row.names = FALSE)
 round(stat.desc(mod_smart), 2)
 ```
 
-    ##                                  Id            Date       Time IsManualReport
-    ## nbr.val                  8077921.00      8077921.00 8071031.00             NA
-    ## nbr.null                       0.00            0.00   14439.00             NA
-    ## nbr.na                         0.00            0.00    6890.00             NA
-    ## min                   1503960366.00        16903.00       0.00             NA
-    ## max                   8877689391.00        16933.00       1.00             NA
-    ## range                 7373729025.00           30.00       1.00             NA
-    ## sum            40843550918312776.00 136655051851.00 4064967.68             NA
-    ## median                4702921684.00        16917.00       0.51             NA
-    ## mean                  5056195884.85        16917.11       0.50             NA
-    ## SE.mean                   809046.67            0.00       0.00             NA
-    ## CI.mean.0.95             1585702.56            0.01       0.00             NA
-    ## var          5287455759970599936.00           74.79       0.08             NA
-    ## std.dev               2299446837.82            8.65       0.28             NA
-    ## coef.var                       0.45            0.00       0.56             NA
-    ##              SmartFeatures       Values
-    ## nbr.val                 NA   8077921.00
-    ## nbr.null                NA   2270149.00
-    ## nbr.na                  NA         0.00
-    ## min                     NA         0.00
-    ## max                     NA     36019.00
-    ## range                   NA     36019.00
-    ## sum                     NA 241708640.35
-    ## median                  NA         8.00
-    ## mean                    NA        29.92
-    ## SE.mean                 NA         0.04
-    ## CI.mean.0.95            NA         0.08
-    ## var                     NA     13542.04
-    ## std.dev                 NA       116.37
-    ## coef.var                NA         3.89
+    ##                                  Id            Date       Time SmartFeatures
+    ## nbr.val                  8077043.00      8077043.00 8070683.00            NA
+    ## nbr.null                       0.00            0.00   14024.00            NA
+    ## nbr.na                         0.00            0.00    6360.00            NA
+    ## min                   1503960366.00        16903.00       0.00            NA
+    ## max                   8877689391.00        16933.00       1.00            NA
+    ## range                 7373729025.00           30.00       1.00            NA
+    ## sum            40839429581798520.00 136640198476.00 4065016.41            NA
+    ## median                4702921684.00        16917.00       0.51            NA
+    ## mean                  5056235256.12        16917.11       0.50            NA
+    ## SE.mean                   809086.64            0.00       0.00            NA
+    ## CI.mean.0.95             1585780.92            0.01       0.00            NA
+    ## var          5287403540259544064.00           74.78       0.08            NA
+    ## std.dev               2299435482.95            8.65       0.28            NA
+    ## coef.var                       0.45            0.00       0.56            NA
+    ##                    Values
+    ## nbr.val        8077043.00
+    ## nbr.null       2270097.00
+    ## nbr.na               0.00
+    ## min                  0.00
+    ## max              36019.00
+    ## range            36019.00
+    ## sum          241703468.86
+    ## median               8.00
+    ## mean                29.92
+    ## SE.mean              0.04
+    ## CI.mean.0.95         0.08
+    ## var              13543.45
+    ## std.dev            116.38
+    ## coef.var             3.89
 
-#### Summary Statistics of Smart Features
-
-``` r
-summary(mod_smart)
-```
-
-    ##        Id                  Date                 Time         
-    ##  Min.   :1503960366   Min.   :2016-04-12   Min.   :00:00:00  
-    ##  1st Qu.:2873212765   1st Qu.:2016-04-19   1st Qu.:06:25:00  
-    ##  Median :4702921684   Median :2016-04-26   Median :12:11:00  
-    ##  Mean   :5056195885   Mean   :2016-04-26   Mean   :12:05:15  
-    ##  3rd Qu.:6962181067   3rd Qu.:2016-05-03   3rd Qu.:17:51:00  
-    ##  Max.   :8877689391   Max.   :2016-05-12   Max.   :23:59:59  
-    ##                                            NA's   :6890      
-    ##  IsManualReport     SmartFeatures          Values        
-    ##  Length:8077921     Length:8077921     Min.   :    0.00  
-    ##  Class :character   Class :character   1st Qu.:    0.00  
-    ##  Mode  :character   Mode  :character   Median :    8.00  
-    ##                                        Mean   :   29.92  
-    ##                                        3rd Qu.:   62.00  
-    ##                                        Max.   :36019.00  
-    ## 
-
-#### Descriptive Analysis of Common Features
+#### Descriptive Analysis of Minute-Wide Features
 
 ``` r
 round(stat.desc(mod_mins), 2)
@@ -1143,30 +912,9 @@ round(stat.desc(mod_mins), 2)
     ## std.dev           10.74
     ## coef.var           4.48
 
-#### Summary Statistics of Common Features
+#### User Numbers
 
-``` r
-summary(mod_mins)
-```
-
-    ##        Id                  Date                 Time         
-    ##  Min.   :1503960366   Min.   :2016-04-13   Min.   :00:00:00  
-    ##  1st Qu.:2320127002   1st Qu.:2016-04-19   1st Qu.:05:57:00  
-    ##  Median :4445114986   Median :2016-04-26   Median :11:56:00  
-    ##  Mean   :4839893062   Mean   :2016-04-26   Mean   :11:57:21  
-    ##  3rd Qu.:6962181067   3rd Qu.:2016-05-04   3rd Qu.:17:57:00  
-    ##  Max.   :8877689391   Max.   :2016-05-12   Max.   :23:59:00  
-    ##    Features             Value        
-    ##  Length:3876480     Min.   :  0.000  
-    ##  Class :character   1st Qu.:  0.000  
-    ##  Mode  :character   Median :  0.000  
-    ##                     Mean   :  2.397  
-    ##                     3rd Qu.:  1.143  
-    ##                     Max.   :220.000
-
-#### User Count
-
-##### Distinct Count of Users per Features
+##### Smart Features User Count
 
 ``` r
 mod_smart %>%
@@ -1188,9 +936,9 @@ mod_smart %>%
     ##  8 LightlyActiveMinutes            33
     ##  9 LoggedActivitiesDistance        33
     ## 10 MinuteCalories                  33
-    ## # … with 20 more rows
+    ## # ℹ 20 more rows
 
-##### Distinct Count of Users per Common Features
+##### Minute-Wide Features User Count
 
 ``` r
 mod_mins %>%
@@ -1206,295 +954,101 @@ mod_mins %>%
     ## 2 Intensity        33
     ## 3 Steps            33
 
-##### Total Count of Manual Report Usage
+#### Total Use Count
+
+##### Smart Feature Usage
 
 ``` r
-mod_smart %>% count(IsManualReport, sort = TRUE) %>% rename(Total=n) %>% drop_na()
-```
-
-    ## # A tibble: 2 × 2
-    ##   IsManualReport Total
-    ##   <chr>          <int>
-    ## 1 True             125
-    ## 2 False             78
-
-##### Number of Manual Report Users
-
-``` r
-mod_smart %>%
-  group_by(IsManualReport)%>%
-  summarise(WeightUserCount=length(unique(Id))) %>%
-  arrange(desc(WeightUserCount)) %>%
-  drop_na() 
-```
-
-    ## # A tibble: 2 × 2
-    ##   IsManualReport WeightUserCount
-    ##   <chr>                    <int>
-    ## 1 True                         5
-    ## 2 False                        3
-
-#### Frequency Count
-
-##### Total Count of Smart Feature Usage
-
-``` r
-mod_smart %>% count(SmartFeatures, sort = TRUE) %>% rename(Frequency=n)
+mod_smart %>% count(SmartFeatures, sort = TRUE) %>% rename(TotalCount=n)
 ```
 
     ## # A tibble: 30 × 2
-    ##    SmartFeatures          Frequency
-    ##    <chr>                      <int>
-    ##  1 HeartRateSec             2483659
-    ##  2 MinuteCalories           1326127
-    ##  3 MinuteIntensity          1326127
-    ##  4 MinuteSteps              1326127
-    ##  5 MinutesMETs              1326127
-    ##  6 MinSleepValue             187605
-    ##  7 HourlyAverageIntensity     22104
-    ##  8 HourlyCalories             22104
-    ##  9 HourlyStepTotal            22104
-    ## 10 HourlyTotalIntensity       22104
-    ## # … with 20 more rows
+    ##    SmartFeatures          TotalCount
+    ##    <chr>                       <int>
+    ##  1 HeartRateSec              2483659
+    ##  2 MinuteCalories            1326127
+    ##  3 MinuteIntensity           1326127
+    ##  4 MinuteSteps               1326127
+    ##  5 MinutesMETs               1326127
+    ##  6 MinSleepValue              187605
+    ##  7 HourlyAverageIntensity      22104
+    ##  8 HourlyCalories              22104
+    ##  9 HourlyStepTotal             22104
+    ## 10 HourlyTotalIntensity        22104
+    ## # ℹ 20 more rows
 
-#### Common Features Frequency
+##### Minute-Wide Features Usage
 
 ``` r
-mod_mins %>% count(Features, sort = TRUE) %>% rename(Frequency=n)
+mod_mins %>% count(Features, sort = TRUE) %>% rename(TotalCount=n)
 ```
 
     ## # A tibble: 3 × 2
-    ##   Features  Frequency
-    ##   <chr>         <int>
-    ## 1 Calories    1292160
-    ## 2 Intensity   1292160
-    ## 3 Steps       1292160
+    ##   Features  TotalCount
+    ##   <chr>          <int>
+    ## 1 Calories     1292160
+    ## 2 Intensity    1292160
+    ## 3 Steps        1292160
 
-#### Date
+#### Weekday Use Count
 
-##### Total Daily Count of Smart Features
-
-``` r
-mod_smart %>% 
-  group_by(Date) %>%
-  summarise(Count = n()) %>%
-  arrange(Date, desc(Count))
-```
-
-    ## # A tibble: 31 × 2
-    ##    Date        Count
-    ##    <date>      <int>
-    ##  1 2016-04-12 298962
-    ##  2 2016-04-13 273036
-    ##  3 2016-04-14 284515
-    ##  4 2016-04-15 303194
-    ##  5 2016-04-16 302622
-    ##  6 2016-04-17 261334
-    ##  7 2016-04-18 265752
-    ##  8 2016-04-19 270836
-    ##  9 2016-04-20 281110
-    ## 10 2016-04-21 273551
-    ## # … with 21 more rows
-
-##### Total Daily Count of Smart Features Frequency
-
-``` r
-mod_smart %>% 
-  group_by(Date, SmartFeatures) %>%
-  summarise(Total_Count = n()) %>%
-  arrange(Date, desc(Total_Count))
-```
-
-    ## # A tibble: 901 × 3
-    ## # Groups:   Date [31]
-    ##    Date       SmartFeatures          Total_Count
-    ##    <date>     <chr>                        <int>
-    ##  1 2016-04-12 HeartRateSec                 99149
-    ##  2 2016-04-12 MinuteCalories               47520
-    ##  3 2016-04-12 MinuteIntensity              47520
-    ##  4 2016-04-12 MinuteSteps                  47520
-    ##  5 2016-04-12 MinutesMETs                  47520
-    ##  6 2016-04-12 MinSleepValue                 6091
-    ##  7 2016-04-12 HourlyAverageIntensity         792
-    ##  8 2016-04-12 HourlyCalories                 792
-    ##  9 2016-04-12 HourlyStepTotal                792
-    ## 10 2016-04-12 HourlyTotalIntensity           792
-    ## # … with 891 more rows
-
-##### Total Daily Count of Common Features
-
-``` r
-mod_mins %>% 
-  group_by(Date) %>%
-  summarise(Count = n()) %>%
-  arrange(Date)
-```
-
-    ## # A tibble: 30 × 2
-    ##    Date        Count
-    ##    <date>      <int>
-    ##  1 2016-04-13 142560
-    ##  2 2016-04-14 142560
-    ##  3 2016-04-15 141120
-    ##  4 2016-04-16 138240
-    ##  5 2016-04-17 138240
-    ##  6 2016-04-18 138240
-    ##  7 2016-04-19 138240
-    ##  8 2016-04-20 138240
-    ##  9 2016-04-21 138240
-    ## 10 2016-04-22 138240
-    ## # … with 20 more rows
-
-##### Total Daily Count of Common Features Frequency
-
-``` r
-mod_mins %>% 
-  group_by(Date, Features) %>%
-  summarise(Total_Count = n()) %>%
-  arrange(Date)
-```
-
-    ## # A tibble: 90 × 3
-    ## # Groups:   Date [30]
-    ##    Date       Features  Total_Count
-    ##    <date>     <chr>           <int>
-    ##  1 2016-04-13 Calories        47520
-    ##  2 2016-04-13 Intensity       47520
-    ##  3 2016-04-13 Steps           47520
-    ##  4 2016-04-14 Calories        47520
-    ##  5 2016-04-14 Intensity       47520
-    ##  6 2016-04-14 Steps           47520
-    ##  7 2016-04-15 Calories        47040
-    ##  8 2016-04-15 Intensity       47040
-    ##  9 2016-04-15 Steps           47040
-    ## 10 2016-04-16 Calories        46080
-    ## # … with 80 more rows
-
-##### Total Weekday Count of Smart Features
-
-``` r
-mod_smart %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday, desc(Frequency)) 
-```
-
-    ## # A tibble: 7 × 2
-    ##   Weekday Frequency
-    ##   <ord>       <int>
-    ## 1 Sun       1024302
-    ## 2 Mon       1010512
-    ## 3 Tue       1361679
-    ## 4 Wed       1297851
-    ## 5 Thu       1188043
-    ## 6 Fri       1115643
-    ## 7 Sat       1079891
-
-##### Weekday Frequency of Smart Features
+##### Total Weekday Smart Feature Usage
 
 ``` r
 mod_smart %>% 
   mutate(Weekday=wday(Date, label=TRUE)) %>%
   group_by(Weekday, SmartFeatures) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday, desc(Frequency)) 
+  summarise(TotalCount = n()) %>%
+  arrange(Weekday, desc(TotalCount)) 
 ```
 
     ## # A tibble: 205 × 3
     ## # Groups:   Weekday [7]
-    ##    Weekday SmartFeatures          Frequency
-    ##    <ord>   <chr>                      <int>
-    ##  1 Sun     HeartRateSec              287147
-    ##  2 Sun     MinuteCalories            173760
-    ##  3 Sun     MinuteIntensity           173760
-    ##  4 Sun     MinuteSteps               173760
-    ##  5 Sun     MinutesMETs               173760
-    ##  6 Sun     MinSleepValue              28762
-    ##  7 Sun     HourlyAverageIntensity      2896
-    ##  8 Sun     HourlyCalories              2896
-    ##  9 Sun     HourlyStepTotal             2896
-    ## 10 Sun     HourlyTotalIntensity        2896
-    ## # … with 195 more rows
+    ##    Weekday SmartFeatures          TotalCount
+    ##    <ord>   <chr>                       <int>
+    ##  1 Sun     HeartRateSec               287147
+    ##  2 Sun     MinuteCalories             173760
+    ##  3 Sun     MinuteIntensity            173760
+    ##  4 Sun     MinuteSteps                173760
+    ##  5 Sun     MinutesMETs                173760
+    ##  6 Sun     MinSleepValue               28762
+    ##  7 Sun     HourlyAverageIntensity       2896
+    ##  8 Sun     HourlyCalories               2896
+    ##  9 Sun     HourlyStepTotal              2896
+    ## 10 Sun     HourlyTotalIntensity         2896
+    ## # ℹ 195 more rows
 
-##### Daily Average of Common Features
-
-``` r
-mod_mins %>%
-  group_by(Date, Features) %>%
-  summarise(Average = mean(Value)) %>%
-  arrange(Date, desc(Average))
-```
-
-    ## # A tibble: 90 × 3
-    ## # Groups:   Date [30]
-    ##    Date       Features  Average
-    ##    <date>     <chr>       <dbl>
-    ##  1 2016-04-13 Steps       4.80 
-    ##  2 2016-04-13 Calories    1.57 
-    ##  3 2016-04-13 Intensity   0.183
-    ##  4 2016-04-14 Steps       5.37 
-    ##  5 2016-04-14 Calories    1.64 
-    ##  6 2016-04-14 Intensity   0.200
-    ##  7 2016-04-15 Steps       5.23 
-    ##  8 2016-04-15 Calories    1.65 
-    ##  9 2016-04-15 Intensity   0.204
-    ## 10 2016-04-16 Steps       5.91 
-    ## # … with 80 more rows
-
-##### Weekday Frequency of Common Features
-
-``` r
-mod_mins %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday) 
-```
-
-    ## # A tibble: 7 × 2
-    ##   Weekday Frequency
-    ##   <ord>       <int>
-    ## 1 Sun        521280
-    ## 2 Mon        514980
-    ## 3 Tue        505440
-    ## 4 Wed        643320
-    ## 5 Thu        627300
-    ## 6 Fri        539460
-    ## 7 Sat        524700
-
-##### Weekday Average of Common Features
+##### Total Weekday Minute-Wide Features Usage
 
 ``` r
 mod_mins %>% 
   mutate(Weekday=wday(Date, label=TRUE)) %>%
   group_by(Weekday, Features) %>%
-  summarise(Mean = round(mean(Value), 2)) %>%
-  arrange(Weekday, desc(Mean)) 
+  summarise(TotalCount=n()) %>% 
+  arrange(Weekday, desc(TotalCount)) 
 ```
 
     ## # A tibble: 21 × 3
     ## # Groups:   Weekday [7]
-    ##    Weekday Features   Mean
-    ##    <ord>   <chr>     <dbl>
-    ##  1 Sun     Steps      4.8 
-    ##  2 Sun     Calories   1.57
-    ##  3 Sun     Intensity  0.18
-    ##  4 Mon     Steps      5.38
-    ##  5 Mon     Calories   1.62
-    ##  6 Mon     Intensity  0.2 
-    ##  7 Tue     Steps      5.64
-    ##  8 Tue     Calories   1.65
-    ##  9 Tue     Intensity  0.21
-    ## 10 Wed     Steps      5.27
-    ## # … with 11 more rows
+    ##    Weekday Features  TotalCount
+    ##    <ord>   <chr>          <int>
+    ##  1 Sun     Calories      173760
+    ##  2 Sun     Intensity     173760
+    ##  3 Sun     Steps         173760
+    ##  4 Mon     Calories      171660
+    ##  5 Mon     Intensity     171660
+    ##  6 Mon     Steps         171660
+    ##  7 Tue     Calories      168480
+    ##  8 Tue     Intensity     168480
+    ##  9 Tue     Steps         168480
+    ## 10 Wed     Calories      214440
+    ## # ℹ 11 more rows
 
-#### Time
+#### Time Frequency
 
 ##### Hourly Frequency of Smart Features
 
 ``` r
-## total feature count per hour
 mod_smart %>%
   mutate(Hour=hours(Time)) %>%
   group_by(Hour, SmartFeatures) %>%
@@ -1503,7 +1057,7 @@ mod_smart %>%
   drop_na() 
 ```
 
-    ## # A tibble: 278 × 3
+    ## # A tibble: 284 × 3
     ## # Groups:   Hour [24]
     ##     Hour SmartFeatures          Total_Count
     ##    <dbl> <chr>                        <int>
@@ -1517,59 +1071,34 @@ mod_smart %>%
     ##  8     0 HourlyCalories                 939
     ##  9     0 HourlyStepTotal                939
     ## 10     0 HourlyTotalIntensity           939
-    ## # … with 268 more rows
+    ## # ℹ 274 more rows
 
-##### Hourly Frequency of Common Features
+##### Hourly Frequency and Average of Minute-Wide Features
 
 ``` r
 mod_mins %>%
   mutate(Hour=hours(Time)) %>%
   group_by(Hour, Features) %>%
-  summarise(Total_Count = n()) %>%
+  summarise(Total_Count = n(), 
+            Average=round(mean(Value), 2)) %>%
   arrange(Hour, desc(Total_Count))
 ```
 
-    ## # A tibble: 72 × 3
+    ## # A tibble: 72 × 4
     ## # Groups:   Hour [24]
-    ##     Hour Features  Total_Count
-    ##    <dbl> <chr>           <int>
-    ##  1     0 Calories        54240
-    ##  2     0 Intensity       54240
-    ##  3     0 Steps           54240
-    ##  4     1 Calories        54180
-    ##  5     1 Intensity       54180
-    ##  6     1 Steps           54180
-    ##  7     2 Calories        54180
-    ##  8     2 Intensity       54180
-    ##  9     2 Steps           54180
-    ## 10     3 Calories        54180
-    ## # … with 62 more rows
-
-##### Hourly Average of Common Features
-
-``` r
-mod_mins %>%
-  mutate(Hour=hours(Time)) %>%
-  group_by(Hour, Features) %>%
-  summarise(Average = round(mean(Value), 2)) %>%
-  arrange(Hour, desc(Average))
-```
-
-    ## # A tibble: 72 × 3
-    ## # Groups:   Hour [24]
-    ##     Hour Features  Average
-    ##    <dbl> <chr>       <dbl>
-    ##  1     0 Calories     1.2 
-    ##  2     0 Steps        0.72
-    ##  3     0 Intensity    0.04
-    ##  4     1 Calories     1.17
-    ##  5     1 Steps        0.4 
-    ##  6     1 Intensity    0.02
-    ##  7     2 Calories     1.15
-    ##  8     2 Steps        0.29
-    ##  9     2 Intensity    0.02
-    ## 10     3 Calories     1.12
-    ## # … with 62 more rows
+    ##     Hour Features  Total_Count Average
+    ##    <dbl> <chr>           <int>   <dbl>
+    ##  1     0 Calories        54240    1.2 
+    ##  2     0 Intensity       54240    0.04
+    ##  3     0 Steps           54240    0.72
+    ##  4     1 Calories        54180    1.17
+    ##  5     1 Intensity       54180    0.02
+    ##  6     1 Steps           54180    0.4 
+    ##  7     2 Calories        54180    1.15
+    ##  8     2 Intensity       54180    0.02
+    ##  9     2 Steps           54180    0.29
+    ## 10     3 Calories        54180    1.12
+    ## # ℹ 62 more rows
 
 ##### Minute Frequency of Smart Features
 
@@ -1582,7 +1111,7 @@ mod_smart %>%
   arrange(Minutes, desc(Total_Count))
 ```
 
-    ## # A tibble: 432 × 3
+    ## # A tibble: 448 × 3
     ## # Groups:   Minutes [60]
     ##    Minutes SmartFeatures          Total_Count
     ##      <dbl> <chr>                        <int>
@@ -1596,63 +1125,38 @@ mod_smart %>%
     ##  8       0 HourlyStepTotal              22104
     ##  9       0 HourlyTotalIntensity         22104
     ## 10       0 MinSleepValue                 3131
-    ## # … with 422 more rows
+    ## # ℹ 438 more rows
 
-##### Minute Frequency of Common Features
+##### Minute Count & Average of Minute-Wide Features
 
 ``` r
 mod_mins %>%
   mutate(Minutes=minutes(Time)) %>%
   group_by(Minutes, Features) %>%
-  summarise(Total_Count = n()) %>%
+  summarise(Total_Count = n(), 
+            Average = round(mean(Value), 2)) %>%
   arrange(Minutes, desc(Total_Count))
 ```
 
-    ## # A tibble: 180 × 3
+    ## # A tibble: 180 × 4
     ## # Groups:   Minutes [60]
-    ##    Minutes Features  Total_Count
-    ##      <dbl> <chr>           <int>
-    ##  1       0 Calories        21536
-    ##  2       0 Intensity       21536
-    ##  3       0 Steps           21536
-    ##  4       1 Calories        21536
-    ##  5       1 Intensity       21536
-    ##  6       1 Steps           21536
-    ##  7       2 Calories        21536
-    ##  8       2 Intensity       21536
-    ##  9       2 Steps           21536
-    ## 10       3 Calories        21536
-    ## # … with 170 more rows
-
-##### Minutes Average of Common Features
-
-``` r
-mod_mins %>%
-  mutate(Minutes=minutes(Time)) %>%
-  group_by(Minutes, Features) %>%
-  summarise(Average = round(mean(Value), 2)) %>%
-  arrange(Minutes, desc(Average)) 
-```
-
-    ## # A tibble: 180 × 3
-    ## # Groups:   Minutes [60]
-    ##    Minutes Features  Average
-    ##      <dbl> <chr>       <dbl>
-    ##  1       0 Steps        5.33
-    ##  2       0 Calories     1.62
-    ##  3       0 Intensity    0.2 
-    ##  4       1 Steps        5.36
-    ##  5       1 Calories     1.63
-    ##  6       1 Intensity    0.2 
-    ##  7       2 Steps        5.55
-    ##  8       2 Calories     1.64
-    ##  9       2 Intensity    0.21
-    ## 10       3 Steps        5.49
-    ## # … with 170 more rows
+    ##    Minutes Features  Total_Count Average
+    ##      <dbl> <chr>           <int>   <dbl>
+    ##  1       0 Calories        21536    1.62
+    ##  2       0 Intensity       21536    0.2 
+    ##  3       0 Steps           21536    5.33
+    ##  4       1 Calories        21536    1.63
+    ##  5       1 Intensity       21536    0.2 
+    ##  6       1 Steps           21536    5.36
+    ##  7       2 Calories        21536    1.64
+    ##  8       2 Intensity       21536    0.21
+    ##  9       2 Steps           21536    5.55
+    ## 10       3 Calories        21536    1.64
+    ## # ℹ 170 more rows
 
 #### Rank Analysis
 
-##### Top 5 Most Popular Features
+##### Top 5 Most Used Features
 
 ``` r
 mod_smart %>%
@@ -1671,7 +1175,7 @@ mod_smart %>%
     ## 4 MinuteSteps     1326127
     ## 5 MinutesMETs     1326127
 
-##### Top 5 Least Popular Features
+##### Top 5 Least Used Features
 
 ``` r
 mod_smart %>%
@@ -1682,99 +1186,95 @@ mod_smart %>%
 ```
 
     ## # A tibble: 5 × 2
-    ##   SmartFeatures      Total
-    ##   <chr>              <int>
-    ## 1 Fat                    2
-    ## 2 BMI                   67
-    ## 3 WeightKg              67
-    ## 4 WeightPounds          67
-    ## 5 TotalMinutesAsleep   415
+    ##   SmartFeatures  Total
+    ##   <chr>          <int>
+    ## 1 Fat                2
+    ## 2 BMI               67
+    ## 3 IsManualReport    67
+    ## 4 WeightKg          67
+    ## 5 WeightPounds      67
 
 #### Step 7 - Visualizations
 
-![](Bellabeat_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-63-1.png)<!-- -->
 
-Most of the smart features were utilized by all 33 users. There were 9
-smart features that had under 25 users.
+Almost all of the smart features were utilized by all 33 users. The ten
+features that were not are related to three different categories:
+weight, heart rate and sleep.
 
-![](Bellabeat_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-64-1.png)<!-- -->
 
-There was a large disparity in the frequency of use among the smart
-features. Five of the features recorded a over 1,250,000 total uses at
-the end of the month. The remaining features had under 250,000 frequency
-total.
+The top 5 most popular smart features among the users possess a time
+measure (seconds, minutes). The ‘HeartRateSec’ feature saw nearly twice
+as much use as the other four smart features. As the time factor of the
+features increased (from seconds to minutes), the frequency of use
+decreased.
 
-![](Bellabeat_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
 
-The top 5 most frequently used smart features among the users possess a
-time measure (seconds, minutes and hourly). As the time factor of the
-features increased (from seconds to hourly), the frequency decreased.
+The top 5 least popular features had under 100 uses among users. It
+should also be noted that these specific features are all related to
+weight.
 
-![](Bellabeat_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
 
-The least used features have a total use count under 500 among the
-users. These features are compromised of the weight features and had
-less than 70 use count, with the lowest being Fat with only 2 over the
-course of the month.
-
-#### Weekday Frequency
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
-
-The frequency of device usage was consistently over 1,000,000 throughout
-the weekdays. The highest usage was seen midweek, from Tuesday to
-Thursday.
-
-![](Bellabeat_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
-
-These three features, used by all sampled users, were consistently above
-150,000 use count throughout the week. The highest point of use across
-all three features was seen on Wednesdays and Thursdays, with a
-frequency over 200,000.
+There are obviously three major distinct layers of frequency among the
+smart features over the month long period. Most of the smart features
+had less than 15,000 frequency of use. The ‘HeartRateSec’ feature had
+the highest daily frequency of use with varying amounts.
 
 #### Time Frequency of Smart Features
 
-![](Bellabeat_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
 
 The hourly frequency of the smart features was greater than that of the
 minutes, but not as consistent. The smart features had a frequency of
 use over 300,000 across the hours. The highest points of use occurred
 between hours 9 and 19 with over 325,000 uses. The minute frequency had
 the highest point of use at minute ‘0’ at a little over 225,000. The
-remaining minutes had a consistent frequency over 125,000 uses.
+remaining minutes have a steady frequency over 125,000 uses.
 
-#### Time Frequency of Common Features
+#### Weekday Analysis of Minute-Wide Features
 
-![](Bellabeat_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
+![](Bellabeat_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
 
-The frequency of the three main features are consistent across the hours
-and minutes. The hourly frequency was identical to each each feature and
-consistently over 50,000 uses from hour ‘0’ to ‘23’. The minute
-frequency was consistently over 20,000 across the minutes.
+The three ‘Minute-Wide’ features saw an identical use count above
+150,000 throughout the week. The highest point of use was seen on
+Wednesdays and Thursdays, with over 200,000 count. The features show
+obvious differences when viewing the Average values, with the ‘Steps’
+feature having the highest value.
+
+#### Time Frequency of Minute-Wide Features
+
+![](Bellabeat_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
+
+The frequencies of these three features are identical from minute ‘0’ to
+minute ‘59’, with over 20,000 use count across the minutes. The
+differences among the features are easily seen when viewing the average
+values across time, with the ‘Steps’ feature having the highest value.
+The steady frequency of use among these features demonstrates their
+popularity among the users.
 
 ### Top Recommendations
 
-**Drop Least Popular Features**
+**Drop Least Used Features**
 
-Bellabeat should consider dropping the five least popular smart
-features. This would allow the company to shift their resources onto
-their more profitable features and better market their products to
-future customers. The company should also consider either discontinuing
-the manual reports for weight smart features or modifying it in order to
-apply to other popular features.
+Bellabeat should consider dropping the five least used features. This
+would allow the company to shift their resources to their more
+profitable features and better market their products to future
+customers.
 
 **Develop ‘Heart’ Related Features**
 
-Since the ‘HeartRateSec’ feature saw the most frequent use by all
-sampled users the company should develop more heart related features
-such as blood pressure or a pulse monitor. They can also consider
-developing a device specifically related to cardio exercises to attract
-potential customers.
+Since the ‘HeartRateSec’ feature saw the most frequent use, the company
+should develop more heart related features such as blood pressure
+recorder or a pulse monitor. They can also consider developing a device
+specifically related to cardio exercises to attract potential customers.
 
 **Develop ‘METS’ Related Features**
 
 The company should develop more ‘METs’ related features as it was among
 the top five most used features over the month and all 33 users made use
-of it. This would also expand the available minute features (Calories,
-Intensity, and Steps) used by all users from 3 to 4. The increased
+of it. This would also expand the available ‘Minute-Wide’ features
+(Calories, Intensity, and Steps) used by all users. The increased
 marketing as a result of the developments would attract more customers.

@@ -1,7 +1,7 @@
 ---
 title: "Bellabeat Case Study"
 author: "Leopoldine Mirtil"
-output: rmarkdown::github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Disclaimer
 
-This analysis was made from the _Bellabeat Case Study: How Can a Wellness Technology Company Play It Smart?_ offered through the Google Data Analytics Certificate program on Coursera.com. The data is from the [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download) on Kaggle.com and was originally uploaded by the user Möbius for public use. The data covers one month of collection from 4/12/2016 to 5/12/2016 from over 30 consenting users.
+This analysis was made from the _Bellabeat Case Study: How Can a Wellness Technology Company Play It Smart?_, offered through the Google Data Analytics Certificate program on Coursera.com. The data is from the [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download) from Kaggle.com and was originally uploaded by the user Möbius for public use. The data covers one month of collection from 4/12/2016 to 5/12/2016 from over 30 consenting users.
 
 
 ## Introduction
@@ -20,28 +20,6 @@ This analysis was made from the _Bellabeat Case Study: How Can a Wellness Techno
 You are a junior data analyst working on the marketing analyst team at Bellabeat, a high-tech manufacturer of health-focused products for women. Bellabeat is a successful small company, but they have the potential to become a larger player in the global smart device market. Urška Sršen, cofounder and Chief Creative Officer of Bellabeat, believes that analyzing smart device fitness data could help unlock new growth opportunities for the company. You have been asked to focus on one of Bellabeat’s products and analyze smart device data to gain insight into how consumers are using their smart devices. The insights you discover will then help guide marketing strategy for the company. You will present your analysis to the Bellabeat executive team along with your high-level recommendations for Bellabeat’s marketing strategy.
 
 
-#### Stakeholders & Products
-
-* __Stakeholders__
-
-    + __Urška__ __Sršen:__ Bellabeat’s cofounder and Chief Creative Officer
-
-    + __Sando__ __Mur:__ Mathematician and Bellabeat’s cofounder; key member of the Bellabeat executive team
-
-    + __Bellabeat__ __marketing__ __analytics__ __team:__ A team of data analysts responsible for collecting, analyzing, and reporting data that helps guide Bellabeat’s marketing strategy. You joined this team six months ago and have been busy learning about Bellabeat’’s mission and business goals — as well as how you, as a junior data analyst, can help Bellabeat achieve them.
-
-
-* __Products__
-
-    + __Bellabeat__ __app:__ The Bellabeat app provides users with health data related to their activity, sleep, stress, menstrual cycle, and mindfulness habits. This data can help users better understand their current habits and make healthy decisions. The Bellabeat app connects to their line of smart wellness products.
-
-    + __Leaf:__ Bellabeat’s classic wellness tracker can be worn as a bracelet, necklace, or clip. The Leaf tracker connects to the Bellabeat app to track activity, sleep, and stress.
-
-    + __Time:__ This wellness watch combines the timeless look of a classic timepiece with smart technology to track user activity, sleep, and stress. The Time watch connects to the Bellabeat app to provide you with insights into your daily wellness.
-
-    + __Spring:__ This is a water bottle that tracks daily water intake using smart technology to ensure that you are appropriately hydrated throughout the day. The Spring bottle connects to the Bellabeat app to track your hydration levels.
-
-
 #### Tasks
 
 1. What are some trends in smart device usage?
@@ -49,7 +27,7 @@ You are a junior data analyst working on the marketing analyst team at Bellabeat
 3. How could these trends help influence Bellabeat marketing strategy?
 
 
-## Get Started
+## Get to Work
 
 ### Step 1 - Import Data
 
@@ -66,10 +44,11 @@ library(pastecs)
 library(ggplot2)
 ```
 
+I chose these specific packages to enable: data manipulation, documentation, descriptive statistics and visualization.
 
-#### Remove Scientific Notation Format
 
-```{r}
+```{r, results=FALSE, echo=FALSE}
+#remove scientific notation format
 options(scipen = 50) 
 ```
 
@@ -99,10 +78,15 @@ sleepDay <- read.csv('sleepDay_merged.csv')
 weightLog <- read.csv('weightLogInfo_merged.csv')
 ```
 
+I set the directory first to make it easier to import all the data files without having to include the full file path every time.
+
 
 ### Step 2 - Clean Data
 
 #### Review Daily Data Sets
+
+I noticed that the 'dailyActs' file had similar columns to the other daily data sets. I decided to first confirm if they were identical, and if so, remove those files. 
+
 
 ##### Compare Daily Dataframes
 
@@ -127,22 +111,38 @@ all.equal(dailyActs$ActivityDate, dailySteps$ActivityDay)
 #dailyActs vs dailyInts
 all.equal(dailyActs$Id, dailyInts$Id)
 all.equal(dailyActs$ActivityDate, dailyInts$ActivityDay)
-all.equal(dailyActs[7:14], dailyInts[3:10]) 
 ```
 
 
 ```{r}
-##convert columns of dailyActs & dailyInts to data tables for comparison
+#dailyActs vs dailyInts
+##convert columns into data tables for comparison
 d_Acts <- data.table::setDT(dailyActs[7:14])
 d_Ints <- data.table::setDT(dailyInts[3:10])
 
-all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)# ignore column order
+all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)
 ```
+
+I had to convert the remaining columns in 'dailyActs' & 'dailyInts' into data tables, due to different column orders, in order to perform a comparison.
+
+```{r}
+#compare similar columns 'TotalDistance' vs 'TrackerDistance'
+tod <- data.table::setDT(dailyActs[5])
+trd <- data.table::setDT(dailyActs[6])
+
+all.equal(tod, trd)
+
+#remove a column
+dailyActs <- select(dailyActs, -c(TotalDistance))
+```
+
+I removed the 'TotalDistance' column after confirming it was identical to the 'TrackerDistance' column, other than the column name. There was no point in having a duplicate column.
+
 
 ```{r, results='hide', include=FALSE}
 #clean environment
 #remove unneeded datasets
-rm(d_Acts, d_Ints, dailyCals, dailyInts, dailySteps)
+rm(d_Acts, d_Ints, dailyCals, dailyInts, dailySteps, tod, trd)
 gc()
 ```
 
@@ -150,16 +150,10 @@ gc()
 ##### Change Data Type of Column
 
 ```{r}
-#will be a common point in other data sets
 dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') 
 ```
 
-
-##### Examine Modified 'dailyActs' Dataframe
-
-```{r}
-str(dailyActs)
-```
+After removing the unnecessary 'daily' files, I changed the data type and format of the 'ActivityDate' column as I will use it as a key point when merging the data sets later on.
 
 
 #### Review Hourly Data sets
@@ -175,6 +169,8 @@ all.equal(hrSteps$Id, hrInts$Id)
 all.equal(hrCals$ActivityHour, hrInts$ActivityHour)
 all.equal(hrSteps$ActivityHour, hrInts$ActivityHour)
 ```
+
+I confirmed that the 'Id' and 'ActivityHour' columns were identical in order to use both as keys when merging the data files.
 
 
 ##### Merge Hourly Data Sets
@@ -199,15 +195,16 @@ gc() #clear up memory
 ##### Compare Minute Data Frames
 
 ```{r}
-# check Id&ActivityMinute columns of min_narrow datasets
+# check Id&ActivityMinute columns 
 all.equal(minCalsN[1:2],minStepsN[1:2])
 all.equal(minIntsN[1:2],minMETsN[1:2])
 all.equal(minCalsN[1:2],minMETsN[1:2])
 
-# check Id&ActivityMinute columns of min_wide datasets
 all.equal(minCalsW[1:2],minStepsW[1:2])
 all.equal(minIntsW[1:2],minCalsW[1:2])
 ```
+
+Same as above, I confirmed that the 'Id' and 'ActivityMinute' columns were identical before merging the files.
 
 
 ##### Merge Minute-Narrow Dataframes
@@ -221,9 +218,6 @@ str(minActsN)
 
 ```{r}
 minWide <- bind_cols(minCalsW, minIntsW[,3:62], minStepsW[,3:62]) 
-
-# view new data set
-str(minWide)
 ```
 
 
@@ -248,6 +242,8 @@ minSleep <- rename(minSleep, MinSleepId=Id, MinSleepDateTime=date, MinSleepValue
 weightLog <- rename(weightLog, WeightId=Id, WeightDateTime=Date, WeightLogId=LogId)
 minWide <- rename(minWide, DateTime=ActivityHour)
 ```
+
+I changed the names of these columns to be more descriptive and for easier identification when combining all the files.
 
 
 #### Add New Columns
@@ -275,26 +271,34 @@ sleepDay$SleepTime <- chron(times.=(format(strptime(sleepDay$SleepDateTime, '%m/
 weightLog$WeightTime <- chron(times.=(format(strptime(weightLog$WeightDateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
 hrate_sec$HRateTime <- chron(times.=(format(strptime(hrate_sec$HRateDateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
 minWide$Time <- chron(times.=(format(strptime(minWide$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+dailyActs$DailyTime <- chron(times.=(as.numeric(NA))) 
 ```
+
+I added date and time columns to the data sets to use as primary keys when merging all the files together.
 
 
 #### Reorganize Columns
 
 ```{r}
-# move new Date & Time cols after Date/Time cols in each dataset
-# make it easier to merge data sets all together
+# move new Date & Time cols 
 hourlyActs <- hourlyActs[, c(1, 2, 7, 8, 3:6)]
-dailyActs <- dailyActs[, c(1, 2, 15, 3:14)] #move 'DailyCalories' column for easy viewing
 minActsN <- minActsN[, c(1, 2, 7, 8, 3:6)]
 minSleep <- minSleep[, c(1, 2, 5, 6, 3, 4)]
 sleepDay <- sleepDay[, c(1, 2, 6, 7, 3:5)]
 weightLog <- weightLog[, c(1, 2, 9, 10, 3:8)]
 hrate_sec <- hrate_sec[, c(1, 2, 4, 5, 3)]
 minWide <- minWide[, c(1, 2, 183, 184, 3:182)]
+
+#move 'DailyCalories' and Time
+dailyActs <- dailyActs[, c(1, 2, 15, 14, 3:13)] 
 ```
+
+I moved the new date and time columns for readability and to make it easier to merge the data sets all together. I also took the time to move the 'DailyCalories' column from the end of the 'dailyActs' data set.
 
 
 #### Confirm Date Ranges
+
+The data was collected over a one month period from 4/12/2016 to 5/12/2016. I decided to verify that all dates of all the data sets were in range.
 
 ```{r}
 range(dailyActs$DailyActsDate)
@@ -314,6 +318,8 @@ range(hrate_sec$HRateDate)
 range(minWide$Date) 
 ```
 
+The only data sets containing out of range dates are 'minSleep' (4/11/2016 - 5/12/2016) and 'minWide' (4/13/2016- 5/13/2016). 
+
 
 #### Remove Out of Range Dates
 
@@ -327,11 +333,11 @@ range(minSleep$MinSleepDate)
 range(minWide$Date)
 ```
 
+I decided to remove the out of range dates from both data sets in order to keep the dates within range.
 
-#### Count NA Values
 
-```{r}
-# count of NA values
+```{r, results='hide', include=FALSE}
+#calculate missing values
 sum(is.na(dailyActs)) 
 sum(is.na(hourlyActs))
 sum(is.na(minActsN)) 
@@ -343,15 +349,20 @@ sum(is.na(minWide))
 ```
 
 
-#### Examine Dataset for NA values
-
-```{r}
+```{r, results='hide', include=FALSE}
 # examine 'weightLog' data for location of all NA vals
 apply(X = is.na(weightLog), MARGIN = 2, FUN = sum)
+#won't remove NA values to avoid possibility of skewing results
 ```
 
-Decided not to remove the NA values from the data frame to avoid skewing the results.
 
+#### Convert Logical Values to Integers 
+
+```{r}
+weightLog$IsManualReport <- as.integer(as.logical(weightLog$IsManualReport))
+```
+
+I converted the logical values of the 'IsManualReport' column into integers where TRUE=1 and FALSE=0. I did this to enable easier analysis of this feature.
 
 #### Remove Column 
 
@@ -359,6 +370,7 @@ Decided not to remove the NA values from the data frame to avoid skewing the res
 minWide <- select(minWide, -c(DateTime))
 ```
 
+I removed this column because it was unneeded after adding the date and time columns.
 
 #### Export Modified Dataframes
 
@@ -374,6 +386,8 @@ write.csv(minWide, "minWide.csv", row.names = FALSE)
 write.csv(sleepDay, "sleepDay.csv", row.names = FALSE)
 write.csv(weightLog, "weightLog.csv", row.names = FALSE)
 ```
+
+I exported these modified files as a precaution before merging the remaining data sets together. If anything goes wrong, I would be able to start over from this point.
 
 
 #### Merge Data Sets
@@ -409,7 +423,7 @@ use4 <- full_join(use2, use3, by=join_by(DailyId==MinActsId, DailyActsDate==Minu
 rm(use2, use3)
 gc()
 
-### will add remaining data sets separately to primary table ##################
+### will add remaining data sets separately to primary data
 # join use4 + hrate
 use5 <- full_join(use4, hrate_sec, by=join_by(DailyId==HRateId, DailyActsDate==HRateDate, Minutes==HRateTime), keep=TRUE) 
 use5 <- select(use5, -c(HRateDateTime))
@@ -421,6 +435,8 @@ rm(use4, use5, hrate_sec, weightLog) #clear environment
 gc()
 ```
 
+I merged all the remaining data sets together except the 'minWide' data set due to its different format. Since I was creating a large data file, I cleared up unnecessary columns and memory in between merging files to avoid a system crash.
+
 
 #### Export Merged Data Frame
 
@@ -428,9 +444,11 @@ gc()
 # set directory
 setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Case Study/01_tidy_data')
 
-#export final merged file as precaution
+#export file 
 write.csv(smart_dev_use, 'smart_dev_use.csv', row.names = FALSE)
 ```
+
+I made sure to export the merged file as a precaution before making further modifications to the data.
 
 
 ```{r, echo=FALSE, results='hide', include=FALSE}
@@ -441,32 +459,28 @@ gc()
 
 ### Step 4- Further Modify Combined Dataset
 
-#### Inspect Merged Data Frame
-
-```{r}
-str(smart_dev_use)
-```
-
-
 #### Create Primary Id column
 
 ```{r}
-# want one singular Id col in dataset
-# find way to add missing 'Ids' to 'DailyId' col if present in others
+#new copy in case of error
 smartDev <- smart_dev_use  
 
 # Primary Id column == DailyId
-## Id columns: SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId 
-# will use all except SleepDayId (in range)
+# use all except SleepDayId (in range)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$MinActsId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$HourlyId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$HRateId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$MinSleepId, smartDev$DailyId)
 smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$WeightId, smartDev$DailyId)
 
-## confirm no more NA values in Id
+# remove other Id columns
+smartDev <- select(smartDev, -c(SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId, MinSleepLogId, WeightLogId))
+
+## confirm no more NA values 
 sum(is.na(smartDev$DailyId))
 ```
+
+I turned the 'DailyId' column into the primary 'Id' column. I used the ifelse function to fill the blank spaces with the other Id columns, except for the 'SleepDayId' which was already in range. I confirmed there were no missing values after modifying the column.
 
 
 ```{r, echo=FALSE, results='hide', include=FALSE}
@@ -479,8 +493,7 @@ gc()
 
 ```{r}
 # Primary Column: DailyActsDate
-# Date columns: SleepDate, HourlyDate, MinuteDates, MinSleepDate, HRateDate, WeightDate
-# use all except SleepDate(already in range)
+# use all dates except SleepDate(in range)
 smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, MinuteDates))
 smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, HourlyDate))
 smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, HRateDate))
@@ -490,17 +503,20 @@ smartDev <- smartDev %>% mutate(DailyActsDate=coalesce(DailyActsDate, WeightDate
 # remove date columns
 smartDev <- select(smartDev, -c(SleepDate, HourlyDate, MinuteDates, MinSleepDate, HRateDate, WeightDate))
 
-## confirm no more NA values in Date
+## confirm no more NA values 
 sum(is.na(smartDev$DailyActsDate))
 ```
+
+I turned the 'DailyActsDate' column into the primary date column, filling the column with the values from the other date columns. I removed the other date columns and confirmed that the primary had no missing values.
+
 
 #### Create Primary Time Column
 
 ```{r}
-smartDev$Time <- smartDev$SleepTime
+smartDev <- rename(smartDev, Time=DailyTime)
 
-# merge other time columns # times: Hour, Minutes, SleepMinutes, HRateTime, WeightTime (covers largest time incl SleepTime)
 # merge time columns
+smartDev <- smartDev %>% mutate(Time=coalesce(Time, SleepTime))
 smartDev <- smartDev %>% mutate(Time=coalesce(Time, Minutes))
 smartDev <- smartDev %>% mutate(Time=coalesce(Time, Hour))
 smartDev <- smartDev %>% mutate(Time=coalesce(Time, HRateTime))
@@ -509,25 +525,23 @@ smartDev <- smartDev %>% mutate(Time=coalesce(Time, WeightTime))
 
 # remove columns
 smartDev <- select(smartDev, -c(SleepTime, Hour, Minutes, SleepMinutes, HRateTime, WeightTime))
-
-# move new 'Time' column to after date
-smartDev <- smartDev[, c(1, 2, 42, 3:41)]
 ```
 
+I used the other time columns to fill in the blanks of the primary 'Time' column. I moved the time column from the end to after the date column for easier readability. 
 
-#### Rename Modified Column
+
+#### Clean up Modified Data Frame
 
 ```{r, results='hide'}
-# remove other Id columns
-smartDev <- select(smartDev, -c(SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId, MinSleepLogId, WeightLogId))
-
-# Rename columns
+#Rename columns
 smartDev <- rename(smartDev, Id=DailyId, Date=DailyActsDate)
 
 # clear environment
 rm(smart_dev_use)
 gc()
 ```
+
+I renamed the primary columns to those that are more self-descriptive and appropriate. 
 
 
 #### View Merged Dataframe
@@ -545,6 +559,8 @@ setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Ca
 #export final merged file
 write.csv(smartDev, 'smartDev.csv', row.names = FALSE)
 ```
+ 
+I exported the final merged file as a precaution before manipulating the files further. 
 
 
 ### Step 5 - Transpose Dataframes
@@ -555,10 +571,10 @@ write.csv(smartDev, 'smartDev.csv', row.names = FALSE)
 # create new dataframe in case of error
 smart_d2 <- smartDev
 
-#transpose data while keeping 3 cols: Id(inc), Dates, & Time
+#transpose data 
 mod_smart <- 
 smart_d2 %>%
-  pivot_longer(cols=c(DailyCalories:MinSleepValue, HeartRateSec:BMI), 
+  pivot_longer(cols=c(DailyCalories:IsManualReport), 
                names_to = 'SmartFeatures', 
                values_to = 'Values', 
                values_drop_na = TRUE)
@@ -567,16 +583,19 @@ smart_d2 %>%
 head(mod_smart) 
 ```
 
+I decided to transpose (or pivot) the data to have all the smart features in one column and their values in another. As seen above, it cut down the amount of columns and will make it easier to efficiently analyze the data. 
+
 
 ```{r, results='hide', echo=FALSE, include=FALSE}
 gc() # clear up storage/memory
 ```
 
 
-##### Pivot Minute-Wide Features Dataframe
+#### Pivot Minute-Wide Features Dataframe
+
+##### Create Features Column
 
 ```{r, warning=FALSE}
-#pivot data, keeping Id, Date, and Time cols
 ## split Cals00-59, Steps00-59, Ints00-59 
 mod_minWide <-
 minWide %>%
@@ -589,9 +608,13 @@ pivot_longer(
 head(mod_minWide)
 ```
 
+Since the feature columns were basically formatted as "Feature##", with "##" going from 00 to 59, it made sense to split the column between the word and numbers. I saw there was more to be done after initially transposing the data, especially to cut down on the number of columns.
+
+
+##### Create Minutes Column
 
 ```{r, warning=FALSE}
-### further transpose to create new Minutes column 
+##create new Minutes column 
 mod_mins <-
 mod_minWide %>%
 pivot_longer(cols = !c(Id, Date, Time, Features),
@@ -599,7 +622,7 @@ pivot_longer(cols = !c(Id, Date, Time, Features),
              values_to = 'Value') %>%
   rename(Hour=Time) 
 
-#reorder  columns to move 'Minutes' after Hour
+#move 'Minutes' after Hour
 mod_mins <- mod_mins[,c(1:3,5,4,6)] 
 mod_mins$Minutes <- chron(times.=(format(strptime(mod_mins$Minutes, '%M'), '%H:%M:%S')))
 
@@ -607,9 +630,12 @@ mod_mins$Minutes <- chron(times.=(format(strptime(mod_mins$Minutes, '%M'), '%H:%
 head(mod_mins)
 ```
 
+I created a new 'Minutes' column from the '00-59' column range, severely cutting down the number of columns. I also moved the feature values into their own column. I renamed the 'Time' column to 'Hour' since it is more accurate especially with the new column. I ended up changing the data type of the 'Minutes' column and moved it after the 'Hour' column in preparation of merging the two columns.
+
+
+##### Merge Time Columns
 
 ```{r, warning=FALSE}
-#merge Minutes and Hours into new 'Time' column
 mod_mins <-
 mod_mins %>% 
   mutate(Hour=hours(Hour), Minutes=minutes(Minutes)) %>%
@@ -620,17 +646,21 @@ mod_mins %>%
 head(mod_mins)
 ```
 
+I created a new 'Time' column by merging the 'Hour' and 'Minutes' columns, while also converting it to the 'times' data type. 
 
-##### Check for NA Values 
 
-```{r}
+```{r, results='hide', include=FALSE}
+# Check for NA/Missing Values 
 #expect a fair amount as users did not use all features at all times
 sum(is.na(mod_smart)) 
+
+##confirm NA locations
+apply(X = is.na(mod_smart), MARGIN = 2, FUN = sum)
+
 
 # should be zero, same as before
 sum(is.na(mod_mins))
 ```
-
 
 ```{r, results='hide', include=FALSE}
 #clean environment and memory
@@ -639,7 +669,7 @@ gc()
 ```
 
 
-#### Export Modified File
+#### Export Final Modified Files
 
 ```{r, warning=FALSE}
 setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Case Study/01_tidy_data')
@@ -647,6 +677,8 @@ setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat Ca
 write.csv(mod_smart, 'mod_smart.csv', row.names = FALSE)
 write.csv(mod_mins, 'mod_mins.csv', row.names = FALSE)
 ```
+
+I made sure to export both files after all the modifications.
 
 
 ### Step 6 - Analyze Data
@@ -657,28 +689,17 @@ write.csv(mod_mins, 'mod_mins.csv', row.names = FALSE)
 round(stat.desc(mod_smart), 2)
 ```
 
-#### Summary Statistics of Smart Features
 
-```{r}
-summary(mod_smart)
-```
-
-#### Descriptive Analysis of Common Features
+#### Descriptive Analysis of Minute-Wide Features
 
 ```{r}
 round(stat.desc(mod_mins), 2)
 ```
 
-#### Summary Statistics of Common Features
 
-```{r}
-summary(mod_mins)
-```
+#### User Numbers
 
-
-#### User Count
-
-##### Distinct Count of Users per Features
+##### Smart Features User Count
 
 ```{r}
 mod_smart %>%
@@ -688,7 +709,7 @@ mod_smart %>%
 ```
 
 
-##### Distinct Count of Users per Common Features  
+##### Minute-Wide Features User Count  
 
 ```{r}
 mod_mins %>%
@@ -698,144 +719,51 @@ mod_mins %>%
 ```
 
 
-##### Total Count of Manual Report Usage
+#### Total Use Count
 
-```{r}
-mod_smart %>% count(IsManualReport, sort = TRUE) %>% rename(Total=n) %>% drop_na()
-```
-
-
-##### Number of Manual Report Users
-
-```{r}
-mod_smart %>%
-  group_by(IsManualReport)%>%
-  summarise(WeightUserCount=length(unique(Id))) %>%
-  arrange(desc(WeightUserCount)) %>%
-  drop_na() 
-```
-
-
-#### Frequency Count
-
-##### Total Count of Smart Feature Usage
+##### Smart Feature Usage
 
 ```{r, warning=FALSE, message=FALSE}
-mod_smart %>% count(SmartFeatures, sort = TRUE) %>% rename(Frequency=n)
+mod_smart %>% count(SmartFeatures, sort = TRUE) %>% rename(TotalCount=n)
 ```
 
 
-#### Common Features Frequency 
+##### Minute-Wide Features Usage 
 
 ```{r}
-mod_mins %>% count(Features, sort = TRUE) %>% rename(Frequency=n)
+mod_mins %>% count(Features, sort = TRUE) %>% rename(TotalCount=n)
 ```
 
 
-#### Date
+#### Weekday Use Count
 
-##### Total Daily Count of Smart Features 
-
-```{r, message=FALSE}
-mod_smart %>% 
-  group_by(Date) %>%
-  summarise(Count = n()) %>%
-  arrange(Date, desc(Count))
-```
-
-
-##### Total Daily Count of Smart Features Frequency 
-
-```{r, warning=FALSE, message=FALSE}
-mod_smart %>% 
-  group_by(Date, SmartFeatures) %>%
-  summarise(Total_Count = n()) %>%
-  arrange(Date, desc(Total_Count))
-```
-
-
-##### Total Daily Count of Common Features 
-
-```{r, message=FALSE}
-mod_mins %>% 
-  group_by(Date) %>%
-  summarise(Count = n()) %>%
-  arrange(Date)
-```
-
-
-##### Total Daily Count of Common Features Frequency 
-
-```{r, warning=FALSE, message=FALSE}
-mod_mins %>% 
-  group_by(Date, Features) %>%
-  summarise(Total_Count = n()) %>%
-  arrange(Date)
-```
-
-
-##### Total Weekday Count of Smart Features
-
-```{r}
-mod_smart %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday, desc(Frequency)) 
-```
-
-
-
-##### Weekday Frequency of Smart Features 
+##### Total Weekday Smart Feature Usage
 
 ```{r, message=FALSE}
 mod_smart %>% 
   mutate(Weekday=wday(Date, label=TRUE)) %>%
   group_by(Weekday, SmartFeatures) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday, desc(Frequency)) 
+  summarise(TotalCount = n()) %>%
+  arrange(Weekday, desc(TotalCount)) 
 ```
 
 
-
-##### Daily Average of Common Features 
-
-```{r, warning=FALSE, message=FALSE}
-mod_mins %>%
-  group_by(Date, Features) %>%
-  summarise(Average = mean(Value)) %>%
-  arrange(Date, desc(Average))
-```
-
-
-##### Weekday Frequency of Common Features
-
-```{r, warning=FALSE, message=FALSE}
-mod_mins %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday) 
-```
-
-
-##### Weekday Average of Common Features
+##### Total Weekday Minute-Wide Features Usage
 
 ```{r, warning=FALSE, message=FALSE}
 mod_mins %>% 
   mutate(Weekday=wday(Date, label=TRUE)) %>%
   group_by(Weekday, Features) %>%
-  summarise(Mean = round(mean(Value), 2)) %>%
-  arrange(Weekday, desc(Mean)) 
+  summarise(TotalCount=n()) %>% 
+  arrange(Weekday, desc(TotalCount)) 
 ```
 
 
-#### Time 
+#### Time Frequency 
 
 ##### Hourly Frequency of Smart Features
 
 ```{r, warning=FALSE, message=FALSE}
-## total feature count per hour
 mod_smart %>%
   mutate(Hour=hours(Time)) %>%
   group_by(Hour, SmartFeatures) %>%
@@ -845,25 +773,15 @@ mod_smart %>%
 ```
 
 
-##### Hourly Frequency of Common Features
+##### Hourly Frequency and Average of Minute-Wide Features
 
 ```{r, warning=FALSE, message=FALSE}
 mod_mins %>%
   mutate(Hour=hours(Time)) %>%
   group_by(Hour, Features) %>%
-  summarise(Total_Count = n()) %>%
+  summarise(Total_Count = n(), 
+            Average=round(mean(Value), 2)) %>%
   arrange(Hour, desc(Total_Count))
-```
-
-
-##### Hourly Average of Common Features
-
-```{r, warning=FALSE, message=FALSE}
-mod_mins %>%
-  mutate(Hour=hours(Time)) %>%
-  group_by(Hour, Features) %>%
-  summarise(Average = round(mean(Value), 2)) %>%
-  arrange(Hour, desc(Average))
 ```
 
 
@@ -878,31 +796,22 @@ mod_smart %>%
   arrange(Minutes, desc(Total_Count))
 ```
 
-##### Minute Frequency of Common Features 
+
+##### Minute Count & Average of Minute-Wide Features
 
 ```{r, warning=FALSE, message=FALSE}
 mod_mins %>%
   mutate(Minutes=minutes(Time)) %>%
   group_by(Minutes, Features) %>%
-  summarise(Total_Count = n()) %>%
+  summarise(Total_Count = n(), 
+            Average = round(mean(Value), 2)) %>%
   arrange(Minutes, desc(Total_Count))
-```
-
-
-##### Minutes Average of Common Features 
-
-```{r, warning=FALSE, message=FALSE}
-mod_mins %>%
-  mutate(Minutes=minutes(Time)) %>%
-  group_by(Minutes, Features) %>%
-  summarise(Average = round(mean(Value), 2)) %>%
-  arrange(Minutes, desc(Average)) 
 ```
 
 
 #### Rank Analysis
 
-##### Top 5 Most Popular Features
+##### Top 5 Most Used Features
 
 ```{r, warning=FALSE, message=FALSE}
 mod_smart %>%
@@ -912,7 +821,8 @@ mod_smart %>%
   slice(1:5)
 ```
 
-##### Top 5 Least Popular Features
+
+##### Top 5 Least Used Features
 
 ```{r, warning=FALSE, message=FALSE}
 mod_smart %>%
@@ -922,43 +832,26 @@ mod_smart %>%
   slice(1:5)
 ```
 
+
+
 #### Step 7 - Visualizations
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
 mod_smart %>%
   group_by(SmartFeatures)%>%
   summarise(User_Count=length(unique(Id))) %>%
-  arrange(desc(User_Count)) %>%
-  ggplot(mapping=aes(x=fct_reorder(SmartFeatures,-User_Count), y=User_Count)) +
-  geom_col(position = "dodge", fill='steelblue') + 
-   ggtitle('User Count per Features') +
+  arrange(User_Count) %>%
+  ggplot(aes(x=fct_reorder(SmartFeatures,+User_Count), y=User_Count)) +
+  geom_col(fill='steelblue') + 
+   ggtitle('Total User Count') +
   xlab('Smart Features') +
-  ylab('Number of Users') +
-  coord_flip() +
-  theme(legend.position = "none") 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        plot.title = element_text(hjust = 0.5))
 ```
 
-Most of the smart features were utilized by all 33 users. There were 9 smart features that had under 25 users. 
-
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE}
-mod_smart %>%
-  group_by(SmartFeatures) %>%
-  summarise(Total_Count=n()) %>%
-  arrange(desc(Total_Count)) %>%
-  ggplot(mapping=aes(x=fct_reorder(SmartFeatures, +Total_Count), y=Total_Count)) +
-  geom_col(position = "dodge", fill='lightseagreen') + 
-  xlab('Smart Features') +
-  ylab('Total Count') +
-  ggtitle('Frequency of Smart Features') +
-  scale_y_continuous(labels = scales::comma) + 
-  coord_flip() +
-  theme(legend.position = "none") 
-```
-
-There was a large disparity in the frequency of use among the smart features. Five of the features recorded a over 1,250,000 total uses at the end of the month. The remaining features had under 250,000 frequency total.
-
-
+Almost all of the smart features were utilized by all 33 users. The ten features that were not are related to three different categories: weight, heart rate and sleep. 
 
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
@@ -976,10 +869,13 @@ mod_smart %>%
             hjust=ifelse(Total_Count < mean(range(Total_Count)), -0.05, 1.1))) +
   scale_y_continuous(labels = scales::comma) + 
   coord_flip() +
-  theme(legend.position = "none") 
+  theme(legend.position = "none", 
+        axis.title.y=element_blank(), 
+        axis.title.x=element_blank()) 
 ```
 
-The top 5 most frequently used smart features among the users possess a time measure (seconds, minutes and hourly). As the time factor of the features increased (from seconds to hourly), the frequency decreased. 
+The top 5 most popular smart features among the users possess a time measure (seconds, minutes). The 'HeartRateSec' feature saw nearly twice as much use as the other four smart features. As the time factor of the features increased (from seconds to minutes), the frequency of use decreased. 
+
 
 
 
@@ -997,142 +893,183 @@ mod_smart %>%
   ylab('Total Count') +
   ggtitle('Top 5 Least Popular Features') +
   coord_flip() +
- theme(legend.position = "none") 
+ theme(legend.position = "none", 
+       axis.title.y=element_blank(),
+       axis.title.x=element_blank()) 
 ```
 
-The least used features have a total use count under 500 among the users. These features are compromised of the weight features and had less than 70 use count, with the lowest being Fat with only 2 over the course of the month.
+The top 5 least popular features had under 100 uses among users. It should also be noted that these specific features are all related to weight.
 
 
-#### Weekday Frequency 
+
 
 ```{r, message=FALSE, echo=FALSE}
 mod_smart %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday) %>%
+  group_by(Date, SmartFeatures) %>%
   summarise(Frequency = n()) %>%
-  arrange(Weekday) %>%
-    ggplot(aes(x=Weekday, y=Frequency)) + 
-    geom_col(fill='cadetblue4') +
-    ggtitle('Weekday Frequency of Smart Features') +
-    scale_y_continuous(labels = scales::comma)
-```
-
-The frequency of device usage was consistently over 1,000,000 throughout the weekdays. The highest usage was seen midweek, from Tuesday to Thursday. 
-
-
-```{r, message=FALSE, echo=FALSE}
-mod_mins %>% 
-  mutate(Weekday=wday(Date, label=TRUE)) %>%
-  group_by(Weekday, Features) %>%
-  summarise(Frequency = n()) %>%
-  arrange(Weekday) %>%
-    ggplot(aes(x=Weekday, y=Frequency, fill=Features)) + 
-    geom_col() +
-    ggtitle('Weekday Frequency of Common Features') +
+  arrange(Date, desc(Frequency)) %>%
+    ggplot(aes(x=Date, y=Frequency)) + 
+    geom_point(aes(color=SmartFeatures), position = "jitter") + 
+    ggtitle('Daily Frequency of Smart Features') +
     scale_y_continuous(labels = scales::comma) +
-    theme(legend.position = "none") +
-    facet_grid(vars(Features))
+    guides(colour = guide_legend(title = NULL, ncol=4)) + 
+    theme(legend.position = "bottom", 
+          axis.title.x=element_blank(),
+          axis.title.y=element_text(size=9),
+          legend.text = element_text(size = 8.5), 
+          plot.title = element_text(hjust = 0.5)) 
 ```
 
-These three features, used by all sampled users, were consistently above 150,000 use count throughout the week. The highest point of use across all three features was seen on Wednesdays and Thursdays, with  a frequency over 200,000.
+There are obviously three major distinct layers of frequency among the smart features over the month long period. Most of the smart features had less than 15,000 frequency of use. The  'HeartRateSec' feature had the highest daily frequency of use with varying amounts.
+
+
 
 
 #### Time Frequency of Smart Features
 
 ```{r, warning=FALSE, message=FALSE, echo=FALSE}
-library(patchwork) # side by side plot
+library(cowplot)
 
-# count by hour
-m1 <- mod_smart %>% 
+#area chart: count by hour
+hs <- mod_smart %>% 
   mutate(Hour=hours(Time)) %>%
   group_by(Hour) %>%
   summarise(Frequency = n()) %>%
   arrange(Hour) %>%
+  drop_na() %>%
     ggplot(aes(x=Hour, y=Frequency)) +
     geom_area(fill='royalblue3', alpha=0.5) +
     geom_line(color='royalblue3', size=1) +
-    ggtitle('Hourly Frequency of Smart \n Features') +
-    scale_y_continuous(labels = scales::comma)
+    ggtitle('Hourly Frequency of Smart Features') +
+    scale_y_continuous(labels = scales::comma) + 
+    theme(plot.title = element_text(size=10, face="bold", hjust = 0.5), 
+          axis.title.x=element_blank(),
+          axis.title.y = element_blank())
 
 #count by minutes
-m2 <- mod_smart %>% 
+ms <- mod_smart %>% 
   mutate(Minutes=minutes(Time)) %>%
   group_by(Minutes) %>%
   summarise(Frequency = n()) %>%
   arrange(Minutes) %>%
+  drop_na() %>%
     ggplot(aes(x=Minutes, y=Frequency)) +
     geom_area(fill='firebrick', alpha=0.5) +
     geom_line(color='firebrick', size=1) +
-    ggtitle('Minute Frequency of Smart \n Features') +
-    scale_y_continuous(labels = scales::comma)
+    ggtitle('Minute Frequency of Smart Features') +
+    scale_y_continuous(labels = scales::comma) + 
+    theme(plot.title = element_text(size=10, face="bold", hjust = 0.5), 
+          axis.title.x=element_blank(),
+          axis.title.y = element_blank())
 
-m1+m2
+plot_grid(hs, ms, nrow=2, align="v")
 ```
 
-The hourly frequency of the smart features was greater than that of the minutes, but not as consistent. The smart features had a frequency of use over 300,000 across the hours. The highest points of use occurred between hours 9 and  19 with over 325,000 uses. The minute frequency had the highest point of use at minute '0' at a little over 225,000. The remaining minutes had a consistent frequency over 125,000 uses.
+The hourly frequency of the smart features was greater than that of the minutes, but not as consistent. The smart features had a frequency of use over 300,000 across the hours. The highest points of use occurred between hours 9 and  19 with over 325,000 uses. The minute frequency had the highest point of use at minute '0' at a little over 225,000. The remaining minutes have a steady frequency over 125,000 uses. 
 
 
-#### Time Frequency of Common Features
 
-```{r, message=FALSE, echo=FALSE}
-library(patchwork)
 
-h1 <- mod_mins %>%
-  mutate(Hours=hours(Time)) %>%
-  group_by(Hours, Features) %>%
-  summarise(Total_Count= n()) %>%
-  ggplot(aes(x=Hours, y=Total_Count, group=Features, color=Features)) +
-    geom_smooth(method = "loess",
-              se = FALSE,
-              formula = 'y ~ x',
-              span = 0.8) +
-    stat_smooth(se=FALSE, geom="area",
-              method = 'loess', alpha=0.5,
-              span = 0.8,aes(fill=Features)) +
-    ggtitle('Hourly Frequency of Common \n Features') +
-    theme(legend.position = "none") +
+#### Weekday Analysis of Minute-Wide Features
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
+mod_mins$Features <- factor(mod_mins$Features, levels=c("Steps", "Calories", "Intensity"))
+
+wm <- mod_mins %>% 
+  mutate(Weekday=wday(Date, label=TRUE)) %>%
+  group_by(Weekday, Features) %>%
+  summarise(Count = n()) %>%
+  arrange(Weekday) %>%
+    ggplot(aes(x=Weekday, y=Count, fill=Features)) + 
+    geom_col() +
+    ggtitle('Weekday Frequency of Minute-Wide \n Features') +
     scale_y_continuous(labels = scales::comma) +
-    ylab("Frequency") +
-    facet_grid(vars(Features)) 
+    theme(legend.position = "none", 
+          plot.title = element_text(face="bold", size=10), 
+          axis.title.x=element_blank(),
+          axis.title.y=element_blank()) +
+    facet_grid(vars(Features))
 
 
-h2 <- mod_mins %>%
+wam <- mod_mins %>% 
+  mutate(Weekday=wday(Date, label=TRUE)) %>%
+  group_by(Weekday, Features) %>%
+  summarise(Average = mean(Value)) %>%
+  arrange(Weekday) %>%
+    ggplot(aes(x=Weekday, y=Average, fill=Features)) + 
+    geom_bar(stat="identity", position = "dodge") +
+    ggtitle('Weekday Average of Minute-Wide Features') +
+    scale_y_continuous(labels = scales::comma) +
+    theme(plot.title = element_text(face="bold", size=10), 
+          axis.title.x=element_blank(), 
+          axis.title.y=element_blank(),
+          legend.title = element_blank(),
+          legend.position = "bottom", 
+          legend.text = element_text(size = 7)) 
+
+plot_grid(wm, wam, nrow=1, align = "h")
+```
+
+The three 'Minute-Wide' features saw an identical use count above 150,000 throughout the week. The highest point of use was seen on Wednesdays and Thursdays, with over 200,000 count. The features show obvious differences when viewing the Average values, with the 'Steps' feature having the highest value.
+
+
+
+
+#### Time Frequency of Minute-Wide Features
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
+#stacked area chart---minutes 
+mm <- mod_mins %>%
   mutate(Minutes=minutes(Time)) %>%
   group_by(Minutes, Features) %>%
   summarise(Total_Count= n()) %>%
-  ggplot(aes(x=Minutes, y=Total_Count, group=Features, color=Features)) +
-    geom_smooth(method = "loess",
-              se = FALSE,
-              formula = 'y ~ x',
-              span = 0.8) +
-    stat_smooth(se=FALSE, geom="area",
-              method = 'loess', alpha=0.5,
-              span = 0.8,aes(fill=Features)) +
-    ggtitle('Minute Frequency of Common \n Features') +
-    theme(legend.position = "none") +
+  ggplot(aes(x=Minutes, y=Total_Count, fill=Features)) +
+    geom_area(color="white") +
+    ggtitle('Minute Frequency of Minute-Wide Features') +
     scale_y_continuous(labels = scales::comma) +
     ylab("Frequency") +
-    facet_grid(vars(Features)) 
+    theme(plot.title = element_text(size=10, face="bold", ), 
+          axis.title.x=element_blank(), 
+          axis.title.y=element_blank(),
+          legend.text = element_text(size=8),
+          legend.title = element_blank()) 
 
-h1 + h2
+am <- mod_mins %>%
+  mutate(Minutes=minutes(Time)) %>%
+  group_by(Minutes, Features) %>%
+  summarise(Average= mean(Value)) %>%
+  ggplot(aes(x=Minutes, y=Average, fill=Features)) +
+    geom_area(color="white") +
+    ggtitle('Minute Averages of Minute-Wide Features') +
+    scale_y_continuous(labels = scales::comma) +
+    ylab("Average") +
+    theme(plot.title = element_text(size=10, face="bold", ), 
+          axis.title.x=element_blank(), 
+          axis.title.y=element_blank(), 
+          legend.text = element_text(size=8),
+          legend.title = element_blank()) 
+
+
+plot_grid(mm, am, nrow=2, align="v")
 ```
 
-The frequency of the three main features are consistent across the hours and minutes. The hourly frequency was identical to each each feature and consistently over 50,000 uses from hour '0' to '23'. The minute frequency was consistently over 20,000 across the minutes.
+The frequencies of these three features are identical from minute '0' to minute '59', with over 20,000 use count across the minutes. The differences among the features are easily seen when viewing the average values across time, with the 'Steps' feature having the highest value. The steady frequency of use among these features demonstrates their popularity among the users. 
+
 
 
 
 ### Top Recommendations
 
-**Drop Least Popular Features**
+**Drop Least Used Features**
 
-Bellabeat should consider dropping the five least popular smart features. This would allow the company to shift their resources onto their more profitable features and better market their products to future customers. The company should also consider either discontinuing the manual reports for weight smart features or modifying it in order to apply to other popular features.
+Bellabeat should consider dropping the five least used features. This would allow the company to shift their resources to their more profitable features and better market their products to future customers. 
 
 
 **Develop 'Heart' Related Features**
 
-Since the 'HeartRateSec' feature saw the most frequent use by all sampled users the company should develop more heart related features such as blood pressure or a pulse monitor. They can also consider developing a device specifically related to cardio exercises to attract potential customers. 
+Since the 'HeartRateSec' feature saw the most frequent use, the company should develop more heart related features such as blood pressure recorder or a pulse monitor. They can also consider developing a device specifically related to cardio exercises to attract potential customers. 
 
 
 **Develop 'METS' Related Features**
 
-The company should develop more 'METs' related features as it was among the top five most used features over the month and all 33 users made use of it. This would also expand the available minute features (Calories, Intensity, and Steps) used by all users from 3  to 4. The increased marketing as a result of the developments would attract more customers.
+The company should develop more 'METs' related features as it was among the top five most used features over the month and all 33 users made use of it. This would also expand the available 'Minute-Wide' features (Calories, Intensity, and Steps) used by all users. The increased marketing as a result of the developments would attract more customers.
