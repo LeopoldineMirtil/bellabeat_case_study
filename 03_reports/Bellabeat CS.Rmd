@@ -353,7 +353,7 @@ I moved the new date and time columns for readability and to make it easier to m
 
 #### Add Suffix to Columns
 
-```{r}
+```{r, warning=FALSE}
 library(datawizard)
 
 dailyActs <- data_addsuffix(dailyActs,"_Daily", Calories:SedentaryMinutes)
@@ -446,7 +446,7 @@ I exported these modified files as a precaution before merging the remaining dat
 
 #### Merge Dataframes
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 #join dailyActs & sleepDay datsets by Id & date as keys
 daily <- full_join(dailyActs, sleepDay, by=join_by(DailyId==SleepDayId, DailyActsDate==SleepDate), keep=TRUE) # keep=TRUE keeps matching column
 
@@ -454,7 +454,7 @@ gc()
 ```
 
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 # join daily data and hourly dataset
 ## merge smaller dataset to larger data set to keep order in Id, Date and Time
 daily_hour <- full_join(daily, hourlyActs, by=join_by(DailyId==HourlyId, DailyActsDate==HourlyDate, SleepTime==Hour), keep=TRUE) 

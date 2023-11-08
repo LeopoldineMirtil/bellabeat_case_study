@@ -444,11 +444,7 @@ the Calories column from the end of the dailyActs data frame.
 
 ``` r
 library(datawizard)
-```
 
-    ## Warning: package 'datawizard' was built under R version 4.3.1
-
-``` r
 dailyActs <- data_addsuffix(dailyActs,"_Daily", Calories:SedentaryMinutes)
 minActs <- data_addsuffix(minActs,"_Minute", Calories:METs)
 minSleep <- data_addsuffix(minSleep ,"_Minute", Sleep)
@@ -568,10 +564,6 @@ daily <- full_join(dailyActs, sleepDay, by=join_by(DailyId==SleepDayId, DailyAct
 gc()
 ```
 
-    ##            used  (Mb) gc trigger  (Mb)  max used   (Mb)
-    ## Ncells  1035649  55.4   10673116 570.1   8568946  457.7
-    ## Vcells 25490920 194.5   83945448 640.5 131155217 1000.7
-
 ``` r
 # join daily data and hourly dataset
 ## merge smaller dataset to larger data set to keep order in Id, Date and Time
@@ -581,10 +573,6 @@ daily_hour <- full_join(daily, hourlyActs, by=join_by(DailyId==HourlyId, DailyAc
 rm(daily, hourlyActs, dailyActs, sleepDay)
 gc()
 ```
-
-    ##            used  (Mb) gc trigger  (Mb)  max used   (Mb)
-    ## Ncells  1037563  55.5    8538493 456.1   8568946  457.7
-    ## Vcells 25843229 197.2   83945448 640.5 131155217 1000.7
 
 ``` r
 # join minute datasets together
