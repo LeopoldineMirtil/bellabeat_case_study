@@ -1,0 +1,810 @@
+---
+title: "Bellabeat Case Study"
+author: "Leopoldine Mirtil"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Disclaimer
+
+This analysis was made as part of the _Bellabeat Case Study: How Can a Wellness Technology Company Play It Smart?_, offered through the Google Data Analytics Certificate program on Coursera.com. The data is from the [FitBit Fitness Tracker Data](https://www.kaggle.com/datasets/arashnic/fitbit?resource=download) and was originally uploaded to Kaggle.com by the user Möbius for public use. The data covers one month of collection from 4/12/2016 to 5/12/2016 from over 30 consenting users.
+
+
+## Introduction 
+
+#### Scenario
+
+You are a junior data analyst working on the marketing analyst team at Bellabeat, a high-tech manufacturer of health-focused products for women. Bellabeat is a successful small company, but they have the potential to become a larger player in the global smart device market. Urška Sršen, cofounder and Chief Creative Officer of Bellabeat, believes that analyzing smart device fitness data could help unlock new growth opportunities for the company. You have been asked to focus on one of Bellabeat’s products and analyze smart device data to gain insight into how consumers are using their smart devices. The insights you discover will then help guide marketing strategy for the company. You will present your analysis to the Bellabeat executive team along with your high-level recommendations for Bellabeat’s marketing strategy.
+
+
+#### Products
+
+* __Bellabeat__ __app:__ The Bellabeat app provides users with health data related to their activity, sleep, stress, menstrual cycle, and mindfulness habits. This data can help users better understand their current habits and make healthy decisions. The Bellabeat app connects to their line of smart wellness products.
+
+* __Leaf:__ Bellabeat’s classic wellness tracker can be worn as a bracelet, necklace, or clip. The Leaf tracker connects to the Bellabeat app to track activity, sleep, and stress.
+
+* __Time:__ This wellness watch combines the timeless look of a classic timepiece with smart technology to track user activity, sleep, and stress. The Time watch connects to the Bellabeat app to provide you with insights into your daily wellness.
+
+* __Spring:__ This is a water bottle that tracks daily water intake using smart technology to ensure that you are appropriately hydrated throughout the day. The Spring bottle connects to the Bellabeat app to track your hydration levels.
+
+* __Bellabeat__ __membership:__ Bellabeat also offers a subscription-based membership program for users. Membership gives users 24/7 access to fully personalized guidance on nutrition, activity, sleep, health and beauty, and mindfulness based on their lifestyle and goals.
+
+
+### Objective
+
+Sršen asks you to analyze smart device usage data in order to gain insight into how consumers use non-Bellabeat smart devices. She then wants you to select one Bellabeat product to apply these insights to in your presentation.
+
+1. What are some trends in smart device usage?
+2. How could these trends apply to Bellabeat customers?
+3. How could these trends help influence Bellabeat marketing strategy?
+
+
+## Get to Work
+
+### Step 1 - Import Data
+
+#### Load Packages
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyr)
+library(tidyverse)
+library(dplyr)
+library(knitr)
+library(lubridate)
+library(chron)
+library(pastecs)
+library(ggplot2)
+library(cowplot)
+```
+
+
+```{r, results=FALSE, echo=FALSE}
+#remove scientific notation format
+options(scipen = 50) 
+```
+
+
+#### Set Directory & Import Data 
+
+```{r, error=FALSE, warning=FALSE}
+setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat/00_raw_data')
+
+dailyActs <- read.csv('dailyActivity_merged.csv')
+dailyCals <- read.csv('dailyCalories_merged.csv')
+dailyInts <- read.csv('dailyIntensities_merged.csv')
+dailySteps <- read.csv('dailySteps_merged.csv')
+hrate_sec <- read.csv('heartrate_seconds_merged.csv')
+hrCals <- read.csv('hourlyCalories_merged.csv')
+hrInts <- read.csv('hourlyIntensities_merged.csv')
+hrSteps <- read.csv('hourlySteps_merged.csv')
+minCalsN <- read.csv('minuteCaloriesNarrow_merged.csv')  
+minIntsN <- read.csv('minuteIntensitiesNarrow_merged.csv')
+minMETsN <- read.csv('minuteMETsNarrow_merged.csv')
+minSleep <- read.csv('minuteSleep_merged.csv')
+minStepsN <- read.csv('minuteStepsNarrow_merged.csv')
+sleepDay <- read.csv('sleepDay_merged.csv')
+weightLog <- read.csv('weightLogInfo_merged.csv')
+```
+
+
+### Step 2 - Clean Data
+
+#### Daily: Compare Dataframes
+
+```{r}
+##dailyActs vs dailyCals
+# TRUE = equal, False=not equal
+all.equal(dailyActs$Calories, dailyCals$Calories) 
+all.equal(dailyActs$Id, dailyCals$Id)
+all.equal(dailyActs$ActivityDate, dailyCals$ActivityDay)
+```
+
+
+```{r}
+##dailyActs vs dailySteps
+all.equal(dailyActs$TotalSteps, dailySteps$StepTotal) 
+all.equal(dailyActs$Id, dailySteps$Id)
+all.equal(dailyActs$ActivityDate, dailySteps$ActivityDay)
+```
+
+
+```{r}
+#dailyActs vs dailyInts
+all.equal(dailyActs$Id, dailyInts$Id)
+all.equal(dailyActs$ActivityDate, dailyInts$ActivityDay)
+```
+
+
+```{r}
+#dailyActs vs dailyInts
+##convert columns of both dfs  into data tables for comparison (both have diff col orders)
+d_Acts <- data.table::setDT(dailyActs[7:14])
+d_Ints <- data.table::setDT(dailyInts[3:10])
+
+all.equal(d_Acts, d_Ints, ignore.col.order = TRUE)
+```
+
+
+```{r}
+#compare similar columns 'TotalDistance' vs 'TrackerDistance'
+tod <- data.table::setDT(dailyActs[5])
+trd <- data.table::setDT(dailyActs[6])
+
+all.equal(tod, trd)
+
+#remove a 'TotalDistance' column
+dailyActs <- select(dailyActs, -c(TotalDistance))
+```
+
+
+
+```{r, results='hide', include=FALSE}
+#clean environment
+rm(tod, trd, d_Acts, d_Ints, dailyCals, dailyInts, dailySteps)
+gc()
+```
+
+
+#### Daily: Convert Data Type of Column
+
+```{r}
+#change to date for later merging
+dailyActs$ActivityDate <- as.Date(dailyActs$ActivityDate, '%m/%d/%Y') 
+```
+
+
+#### Hourly: Compare Hourly Dataframes
+
+```{r}
+#check Id columns
+all.equal(hrCals$Id, hrInts$Id)
+all.equal(hrSteps$Id, hrInts$Id)
+
+#check Activity columns
+all.equal(hrCals$ActivityHour, hrInts$ActivityHour)
+all.equal(hrSteps$ActivityHour, hrInts$ActivityHour)
+```
+
+
+#### Merge Hourly Dataframes
+
+```{r}
+hourlyActs <- bind_cols(hrCals, hrSteps[3], hrInts[3:4])
+
+# view data
+str(hourlyActs)
+```
+
+
+```{r, results='hide', include=FALSE}
+#clean environment and remove unneeded datasets
+rm(hrCals, hrInts, hrSteps)
+
+#clear up memory
+gc() 
+```
+
+
+#### Minute: Compare Dataframes
+
+```{r}
+# check Id&ActivityMinute columns 
+all.equal(minCalsN[1:2],minStepsN[1:2])
+all.equal(minIntsN[1:2],minMETsN[1:2])
+all.equal(minCalsN[1:2],minMETsN[1:2])
+```
+
+
+#### Merge Minute-Narrow Dataframes
+
+```{r}
+minActs <- bind_cols(minCalsN, minStepsN[3], minIntsN[3], minMETsN[3])
+
+str(minActs) 
+```
+
+
+```{r, results='hide', include=FALSE}
+#clean environment
+rm(minCalsN, minStepsN, minIntsN, minMETsN)
+gc()
+```
+
+
+### Step 3 - Modify Data
+
+#### Rename Columns
+
+```{r}
+dailyActs <- rename(dailyActs, DailyActsDate=ActivityDate, DailyId=Id)
+sleepDay <- rename(sleepDay, DateTime=SleepDay, SleepDayId=Id)
+hourlyActs <- rename(hourlyActs, DateTime=ActivityHour, TotalSteps=StepTotal, HourlyId=Id)
+hrate_sec <- rename(hrate_sec, HRateId=Id, DateTime=Time, HeartRate=Value)
+minActs <- rename(minActs, MinActsId=Id, DateTime=ActivityMinute)
+minSleep <- rename(minSleep, MinSleepId=Id, DateTime=date, Sleep=value)
+weightLog <- rename(weightLog, WeightId=Id, DateTime=Date)
+```
+
+
+#### Remove Columns
+
+```{r}
+minSleep <- select(minSleep, -c(logId))
+weightLog <- select(weightLog, -c(LogId))
+```
+
+
+#### Convert Logical Values to Integers 
+
+```{r}
+weightLog$IsManualReport <- as.integer(as.logical(weightLog$IsManualReport))
+```
+
+
+#### Add New Columns
+
+##### Add Date-Only Columns
+
+```{r}
+hourlyActs$HourlyDate <- as.Date(hourlyActs$DateTime, '%m/%d/%Y')
+minActs$MinuteDate <- as.Date(minActs$DateTime, '%m/%d/%Y')
+minSleep$MinSleepDate <- as.Date(minSleep$DateTime, '%m/%d/%Y')
+sleepDay$SleepDate <- as.Date(sleepDay$DateTime, '%m/%d/%Y')
+weightLog$WeightDate <- as.Date(weightLog$DateTime, '%m/%d/%Y')
+hrate_sec$HRateDate <- as.Date(hrate_sec$DateTime, '%m/%d/%Y')
+```
+
+
+##### Add Time-Only Columns 
+
+```{r, warning=FALSE}
+hourlyActs$Hour <- chron(times.=(format(strptime(hourlyActs$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+minActs$Minutes<- chron(times.=(format(strptime(minActs$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+minSleep$SleepMinutes <- chron(times.=(format(strptime(minSleep$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+sleepDay$SleepTime <- chron(times.=(format(strptime(sleepDay$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+weightLog$WeightTime <- chron(times.=(format(strptime(weightLog$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+hrate_sec$HRateTime <- chron(times.=(format(strptime(hrate_sec$DateTime, '%m/%d/%Y %r'), '%H:%M:%S')))
+dailyActs$Time <- chron(times.=(as.numeric(NA))) 
+```
+
+
+#### Remove DateTime Columns
+
+```{r}
+hourlyActs <- select(hourlyActs, -c(DateTime))
+minSleep <- select(minSleep, -c(DateTime))
+weightLog <- select(weightLog, -c(DateTime))
+minActs <-select(minActs, -c(DateTime))
+sleepDay <- select(sleepDay, -c(DateTime))
+hrate_sec <- select(hrate_sec, -c(DateTime))
+```
+
+
+#### Reorganize Columns
+
+```{r}
+hourlyActs <- hourlyActs[, c(1, 6, 7, 2:5)]
+minActs <- minActs[, c(1, 6, 7, 2:5)]
+minSleep <- minSleep[, c(1, 3, 4, 2)]
+sleepDay <- sleepDay[, c(1, 5, 6, 2:4)]
+weightLog <- weightLog[, c(1, 7, 8, 2:6)]
+hrate_sec <- hrate_sec[, c(1, 3, 4, 2)]
+dailyActs <- dailyActs[, c(1, 2, 15, 14, 3:13)] 
+```
+
+
+#### Add Suffix to Column Values
+
+```{r, warning=FALSE}
+library(datawizard)
+
+#add suffixes to smart features valuesmatch time intervals of dfs and for later analysis
+dailyActs <- data_addsuffix(dailyActs,"_Daily", Calories:SedentaryMinutes)
+minActs <- data_addsuffix(minActs,"_Minute", Calories:METs)
+minSleep <- data_addsuffix(minSleep ,"_Minute", Sleep)
+sleepDay <- data_addsuffix(sleepDay,"_Daily", TotalSleepRecords:TotalTimeInBed)
+hourlyActs <- data_addsuffix(hourlyActs,"_Hourly", Calories:AverageIntensity)
+weightLog <- data_addsuffix(weightLog,"_Daily", WeightKg:IsManualReport)
+hrate_sec <- data_addsuffix(hrate_sec,"_Seconds", HeartRate)
+```
+
+
+#### Confirm Date Ranges
+
+```{r}
+#dates should be w/i range (4/12 - 5/12/2016)
+range(dailyActs$DailyActsDate)
+
+range(hourlyActs$HourlyDate) 
+
+range(minActs$MinuteDate)
+
+range(minSleep$MinSleepDate) 
+
+range(sleepDay$SleepDate) 
+
+range(weightLog$WeightDate) 
+
+range(hrate_sec$HRateDate)  
+```
+
+
+#### Remove Out of Range Dates
+
+```{r}
+minSleep <- minSleep[minSleep[['MinSleepDate']]>='2016-04-12', ] 
+```
+
+
+```{r, results='hide', include=FALSE}
+#calculate missing values
+sum(is.na(dailyActs)) 
+sum(is.na(hourlyActs))
+sum(is.na(minActs)) 
+sum(is.na(minSleep))
+sum(is.na(sleepDay)) 
+sum(is.na(weightLog)) 
+sum(is.na(hrate_sec))
+```
+
+
+```{r, results='hide', include=FALSE}
+# examine 'weightLog' data for location of all NA vals
+apply(X = is.na(weightLog), MARGIN = 2, FUN = sum)
+#won't remove NA values to avoid possibility of skewing results
+```
+
+
+#### Merge Dataframes
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+#join dailyActs & sleepDay datsets by Id & date as keys
+daily <- full_join(dailyActs, sleepDay, by=join_by(DailyId==SleepDayId, DailyActsDate==SleepDate), keep=TRUE) # keep=TRUE keeps matching cols
+
+gc()
+```
+
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+# join daily data and hourly dataset
+## merge smaller dataset to larger data set to keep order in Id, Date and Time
+daily_hour <- full_join(daily, hourlyActs, by=join_by(DailyId==HourlyId, DailyActsDate==HourlyDate, SleepTime==Hour), keep=TRUE) 
+
+# clear previous joined files
+rm(daily, hourlyActs, dailyActs, sleepDay)
+gc()
+```
+
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+# join minute datasets together
+minutes <- full_join(minActs, minSleep, by=join_by(MinActsId==MinSleepId, MinuteDate==MinSleepDate, Minutes==SleepMinutes), keep=TRUE)
+
+rm(minActs, minSleep)
+gc()
+
+# combine daily_hour &  minutes; use hour as next longest available time format
+d_hr_min <- full_join(daily_hour, minutes, by=join_by(DailyId==MinActsId, DailyActsDate==MinuteDate, Hour==Minutes), keep=TRUE)
+rm(daily_hour, minutes)
+gc()
+
+# join d_hr_min + hrate_sec
+smarties <- full_join(d_hr_min, hrate_sec, by=join_by(DailyId==HRateId, DailyActsDate==HRateDate, Minutes==HRateTime), keep=TRUE) 
+
+# join smarties + weight Log
+smart <- full_join(smarties, weightLog, by=join_by(DailyId==WeightId, DailyActsDate==WeightDate, HRateTime==WeightTime), keep=TRUE) 
+
+#clear environment
+rm(smarties, d_hr_min, hrate_sec, weightLog) 
+gc()
+```
+
+
+```{r, echo=FALSE, results='hide', include=FALSE}
+# clear up memory
+gc()
+```
+
+
+### Step 4 - Further Modify Combined Dataset
+
+#### Create Primary Id Column
+
+```{r}
+#new copy in case of error
+smartDev <- smart 
+
+smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$MinActsId, smartDev$DailyId)
+smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$HourlyId, smartDev$DailyId)
+smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$HRateId, smartDev$DailyId)
+smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$MinSleepId, smartDev$DailyId)
+smartDev$DailyId <- ifelse(is.na(smartDev$DailyId), smartDev$WeightId, smartDev$DailyId)
+
+
+## confirm no more NA values 
+sum(is.na(smartDev$DailyId))
+
+# remove other Id columns
+smartDev <- select(smartDev, -c(SleepDayId, HourlyId, MinActsId, HRateId, WeightId, MinSleepId))
+```
+
+
+```{r, echo=FALSE, results='hide', include=FALSE}
+# clear up memory
+gc()
+```
+
+
+#### Create Primary Date Column 
+
+```{r}
+#use other date cols to fill blanks in 'DailyActsDate'
+smartDev <- 
+  smartDev %>% 
+    mutate(DailyActsDate=coalesce(DailyActsDate, SleepDate)) %>%
+    mutate(DailyActsDate=coalesce(DailyActsDate, MinuteDate)) %>%
+    mutate(DailyActsDate=coalesce(DailyActsDate, HourlyDate)) %>%
+    mutate(DailyActsDate=coalesce(DailyActsDate, HRateDate)) %>%
+    mutate(DailyActsDate=coalesce(DailyActsDate, MinSleepDate)) %>%
+    mutate(DailyActsDate=coalesce(DailyActsDate, WeightDate))
+
+## confirm no more NA values 
+sum(is.na(smartDev$DailyActsDate))
+
+# remove other date columns
+smartDev <- select(smartDev, -c(SleepDate, HourlyDate, MinuteDate, MinSleepDate, HRateDate, WeightDate))
+```
+
+
+#### Create Primary Time Column
+
+```{r}
+#fill blanks of Time column w/other time cols
+smartDev <- 
+  smartDev %>% 
+    mutate(Time=coalesce(Time, SleepTime)) %>% 
+    mutate(Time=coalesce(Time, Minutes)) %>% 
+    mutate(Time=coalesce(Time, Hour)) %>% 
+    mutate(Time=coalesce(Time, HRateTime)) %>% 
+    mutate(Time=coalesce(Time, SleepMinutes)) %>% 
+    mutate(Time=coalesce(Time, WeightTime))
+
+# remove columns
+smartDev <- select(smartDev, -c(SleepTime, Hour, Minutes, SleepMinutes, HRateTime, WeightTime))
+```
+
+
+#### Clean up Modified Dataframe
+
+```{r, results='hide'}
+#Rename columns
+smartDev <- rename(smartDev, Id=DailyId, Date=DailyActsDate)
+
+# clear environment
+rm(smart)
+gc()
+```
+
+
+#### View Merged Dataframe
+
+```{r}
+str(smartDev)
+```
+
+
+### Step 5 - Final Manipulation of Dataframes
+
+#### Pivot Smart Features Dataframe
+
+```{r, warning=FALSE}
+# create new df in case of error
+smart_d2 <- smartDev
+
+#transpose data 
+mod_smart <- 
+smart_d2 %>%
+  pivot_longer(cols=c(Calories_Daily:IsManualReport_Daily), 
+               names_to = 'SmartFeatures', 
+               values_to = 'Values', 
+               values_drop_na = TRUE)
+
+#view pivoted data
+head(mod_smart) 
+```
+
+
+
+```{r, results='hide', echo=FALSE, include=FALSE}
+gc() # clear up storage/memory
+```
+
+
+#### Create Interval Column
+
+```{r}
+#removed suffixes from SmartFeatures values to create new col
+mod_smart <-
+mod_smart %>%
+  separate_wider_delim(SmartFeatures, "_", names=c('SmartFeatures', 'Interval'))
+
+head(mod_smart)
+```
+
+
+#### Add Category Column
+
+```{r}
+#group related features into categories for new col
+mod_smart$Category <- with(mod_smart, ifelse(SmartFeatures == "Calories", 'Calories',
+                            ifelse(SmartFeatures == "METs", 'METs',
+                            ifelse(SmartFeatures == "Sleep" |SmartFeatures =="TotalSleepRecords"
+                                   |SmartFeatures =="TotalMinutesAsleep"
+                                   |SmartFeatures =="TotalTimeInBed", 'Sleep', 
+                            ifelse(SmartFeatures == "Steps" |SmartFeatures =="TotalSteps", 'Steps', 
+                            ifelse(SmartFeatures == "WeightKg"|SmartFeatures =="WeightPounds"
+                                   |SmartFeatures =="Fat"|SmartFeatures =="BMI"
+                                   |SmartFeatures =="IsManualReport", 'Weight', 
+                            ifelse(SmartFeatures =="HeartRate", 'Heart Rate', 'Intensity')))))))
+```
+
+
+#### Reorganize Columns
+
+```{r}
+mod_smart <- mod_smart[, c(1:4, 6, 7, 5)] 
+head(mod_smart)
+```
+
+
+
+```{r, results='hide', echo=FALSE, include=FALSE}
+#clear up storage/memory
+gc() 
+
+#clear enivronment
+rm(smart_d2, smartDev)
+```
+
+
+#### Export Final Modified Files
+
+```{r, warning=FALSE}
+setwd('C:/Users/Leopoldine/Desktop/Mine/Coding Projects & Portfolio/Bellabeat/01_tidy_data')
+
+write.csv(mod_smart, 'mod_smart.csv', row.names = FALSE)
+```
+
+
+### Step 5 - Analyze Data
+
+#### Descriptive Analysis of Smart Features
+
+```{r}
+round(stat.desc(mod_smart), 2)
+```
+
+
+#### Smart Features User Count
+
+```{r}
+mod_smart %>%
+  group_by(SmartFeatures)%>%
+  summarise(UserCount=length(unique(Id))) %>%
+  arrange(desc(UserCount)) %>%
+  print(n=27)
+```
+
+
+
+#### Total Use Count
+
+##### Feature Category Usage
+
+```{r, warning=FALSE, message=FALSE}
+mod_smart %>%
+  group_by(Category) %>%
+  summarise(Total=n()) %>%
+  arrange(desc(Total)) 
+```
+
+
+##### Smart Features Usage by Category
+
+```{r, warning=FALSE, message=FALSE}
+mod_smart %>%
+  group_by(Category, SmartFeatures)%>%
+  summarise(Count=n()) %>%
+  arrange(Category, desc(Count)) %>%
+  print(n=27)
+```
+
+
+##### Total Count by Interval 
+
+```{r, warning=FALSE, message=FALSE}
+mod_smart %>%
+  group_by(Interval) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+```
+
+
+##### Total Count by Category and Interval 
+
+```{r, warning=FALSE, message=FALSE}
+mod_smart %>%
+  group_by(Interval, Category) %>%
+  summarise(Count=n()) %>%
+  arrange(Interval, desc(Count))
+```
+
+
+#### Weekday Frequency of Feature Categories
+
+```{r, message=FALSE}
+mod_smart %>% 
+  mutate(Weekday=wday(Date, label=TRUE)) %>%
+  group_by(Weekday, Category) %>%
+  summarise(TotalCount = n()) %>%
+  arrange(Weekday, desc(TotalCount)) 
+```
+
+
+#### Top & Bottom 5 Used Features
+
+```{r, warning=FALSE, message=FALSE}
+mod_smart %>%
+  group_by(SmartFeatures) %>%
+  summarise(Total_Count=n()) %>%
+  arrange(desc(Total_Count)) %>%
+  slice(unique(c(1:5, n() - 4:0))) 
+```
+
+
+### Step 6 - Visualizations
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+mod_smart %>%
+  group_by(Category) %>%
+  summarise(Total=n()) %>%
+  mutate(percentage=round(Total*100/sum(Total), 3)) %>%
+  arrange(desc(Category)) %>%
+  mutate(y_pos = cumsum(percentage)-0.5*percentage) %>%
+  ggplot(aes(x=2, y=percentage, fill=Category))+
+    geom_bar(stat="identity", color="white") +
+    ggtitle('Total Use by Feature Category') +
+    coord_polar(theta = "y", start=0)+
+    geom_text(aes(y=y_pos, label=paste0(Category, sep="\n", percentage, "%")), color="black", size=3)+
+    theme_void() +
+    theme(legend.position = "none",
+          plot.title = element_text(hjust = 0.5)) +
+    xlim(0.6,2.6)
+```
+
+The Heart Rate category saw the most use during the month-long period. The Weight and Sleep categories saw less than 5% of use combined during the period. Since the categories reflect their related smart features, we can assume that the heart rate feature saw the most use during the period while both weight-related and sleep-related features saw the least.
+
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+mod_smart %>%
+  group_by(Interval, Date) %>%
+  summarise(UseCount=n()) %>%
+  arrange(desc(UseCount)) %>%
+  ggplot(aes(x=Date, y=UseCount, color=Interval, group=Interval)) +
+    geom_point() + 
+    geom_line() +
+    ggtitle("Daily Frequency by Time Interval") +
+    scale_color_brewer(palette = "Dark2") +
+    scale_y_continuous(labels = scales::comma) + 
+    theme(axis.title.y=element_blank())
+```
+
+The highest frequency of use was recorded by minutes with over 150,000 uses steadily throughout most of the month. This shows that users greatly preferred tracking their activities first by minute, then by seconds compared to the other time intervals.
+
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+mod_smart %>%
+  group_by(Interval, Category) %>%
+  summarise(Total=n()) %>%
+  mutate(percentage=round(Total/sum(Total), 4)) %>%
+  arrange(Interval, percentage) %>%
+  ggplot(aes(x=Interval, y=percentage, fill=Category)) +
+    geom_col(stat="identity") +
+    geom_text(aes(label=if_else(percentage > 0.05, paste0(sprintf("%1.2f", percentage*100),"%"), ""),
+                  width=0.75), position=position_stack(vjust=0.5), size=4, color="white") +
+    scale_color_brewer(palette = "paired") +
+    scale_y_continuous(labels = scales::percent) + 
+    ggtitle('Total Category Usage by Time Interval') +
+    theme(axis.title.x=element_blank(),
+          axis.title.y=element_blank()) 
+```
+
+The Intensity category saw the most daily use, while the Weight category saw the least. The Hourly interval recorded use from 3 feature categories, with the Intensity category made up half of the total use. The Minute interval recorded use from 5 categories, with the Sleep category recording the less than 4% of use. The only feature tracked during seconds was heart rate. With the exception of Seconds, as the time interval increased, so did the number of categories (and related features) use among users.
+
+
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
+mod_smart %>% 
+  filter(Interval=="Daily") %>%
+  group_by(Date, SmartFeatures) %>%
+  summarise(Frequency = n()) %>%
+  arrange(Date, desc(Frequency)) %>%
+    ggplot(aes(x=Date, y=Frequency)) + 
+    geom_point(aes(color=SmartFeatures), position = "jitter") + 
+    ggtitle('Frequency of Daily-Tracked Smart Features') +
+    scale_y_continuous(labels = scales::comma) +
+    guides(colour = guide_legend(title = NULL, ncol=4)) + 
+    theme(legend.position = "bottom",
+      axis.title.x=element_blank(),
+          axis.title.y=element_blank(),
+          legend.text = element_text(size = 8.5), 
+          plot.title = element_text(hjust = 0.5)) 
+```
+
+There are three distinct layers of frequency among the smart features over the month. The Calories features and all the intensity-related features had the highest daily use out of all of the daily-tracked features. The bottom layer was made up of all of the weight-related features and saw a daily use of less than 5.
+
+
+```{r, message=FALSE, echo=FALSE, warning=FALSE}
+hf <- mod_smart %>% 
+  filter(Interval=="Hourly") %>%
+  mutate(Hour=hours(Time)) %>%
+  group_by(Hour, SmartFeatures) %>%
+  summarise(Frequency = n()) %>%
+  arrange(Hour) %>%
+    ggplot(aes(x=Hour, y=Frequency, fill=SmartFeatures, group=SmartFeatures)) +
+    geom_bar(stat="identity") + 
+    ggtitle('Frequency of Hourly-Tracked Smart Features') +
+    scale_y_continuous(labels = scales::comma) +
+    theme(plot.title = element_text(size=10, face="bold"), 
+          axis.title.y=element_blank(),
+          axis.title.x=element_text(size=8),
+          legend.title=element_blank(),
+          legend.text=element_text(size=8),
+          legend.position = "right") +
+    scale_fill_brewer(palette="Spectral") 
+
+
+mf <- mod_smart %>% 
+  filter(Interval=="Minute") %>%
+  mutate(Minutes=minutes(Time)) %>%
+  group_by(Minutes, SmartFeatures) %>%
+  summarise(Frequency= n()) %>%
+    ggplot(aes(x=Minutes, y= Frequency, fill=SmartFeatures, group=SmartFeatures)) +
+    geom_area(alpha=0.5) +
+    geom_line(aes(ymax= Frequency, colour=SmartFeatures), position="stack", show.legend = FALSE) +
+    ggtitle('Frequency of Minute-Tracked Smart Features') +
+    scale_y_continuous(labels = scales::comma) +
+    scale_fill_brewer(palette="Set2") +
+    scale_color_brewer(palette="Set2") +
+    theme(plot.title = element_text(size=10, face="bold"), 
+          axis.title.y=element_blank(),
+          axis.title.x=element_text(size=8),
+          legend.title=element_blank(),
+          legend.text=element_text(size=8),
+          legend.position = "right")
+
+plot_grid(hf, mf, nrow=2, align = "v")
+```
+
+A consistent frequency under 1,000 uses every hour was recorded for the hourly smart features. The four features that were recorded hourly saw an equal amount of use from hours '0-23'. The Sleep feature had the lowest frequency of use compared to the other four features recorded every minute. The minute frequencies of these features had over 20,000 uses steadily from minutes '0-59'. 
+
+
+### Top Recommendations
+
+**Drop Weight Features**
+
+Bellabeat should consider removing or not developing any weight-related features since the five least used features were all related to weight. By shifting resources to other features that are actually popular among users, the company would be able to better market their products and attract potential customers. 
+
+
+**Develop Features Related to Most Popular Features**
+
+Bellabeat should create features related to the top five most used features (Heart Rate, Calories, Intensity, Steps and METs). For example, the company could develop cardio-related features such as a blood pressure recorder or pulse monitor to reflect the high use in the Heart Rate feature. These new features could then be added to existing Bellabeat products to the benefit of existing and potential customers. The Time wellness watch would be the perfect product to add these new features to.
+
+
+**Track Features by Minutes/Seconds**
+
+The company should ensure that their features can be tracked by the minutes or seconds as the highest use were recorded during these time intervals. 
+Bellabeat can modify the Time wellness watch to allow users to track features by their preferred time intervals which will also be appealing to potential customers. 
